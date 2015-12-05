@@ -86,3 +86,9 @@
         header {:e/types #{tag}
                 :text (apply str txt)}]
     {:p/type :text :elements [header]}))
+
+
+(defn- parse-block [b]
+  (case (first b)
+    :Header (parse-header b)
+    :List (parse-list b)))
