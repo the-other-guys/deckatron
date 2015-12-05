@@ -110,8 +110,8 @@
 (defn- parse-block [b]
   (case (first b)
     :Header (parse-header b)
-    :unordered-list (parse-list b)
-    :ordered-list (parse-ordered-list b)))
+    :List (parse-list b)
+    :Ordered (parse-ordered-list b)))
 
 
 (defn parse [s]
