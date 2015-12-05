@@ -13,9 +13,9 @@
   (insta/parser
     "<Blocks> = (Paragraph | Header | List | Ordered | Code | Rule)+
     Header = Line Headerline Blankline+
-    <Headerline> = h1 | h2
-    h1 = '='+
-    h2 = '-'+
+    <Headerline> = (h1 | h2)
+    h1 = '# '
+    h2 = '## '
     List = Listline+ Blankline+
     Listline = Listmarker Whitespace+ Word (Whitespace Word)* EOL
     <Listmarker> = <'+' | '*' | '-'>
@@ -60,9 +60,9 @@
   [:Header \"hello\" \" \" \"world\" [:h1 \"=\"]]"
   (let [tag (-> block last first)
         txt (-> block rest drop-last)
-        header {:e/types #{tag}
+        header {:e/types #{}
                 :text (apply str txt)}]
-    (->paragraph :text [header])))
+    (->paragraph tag [header])))
 
 
 (defn- parse-span [s]
@@ -104,9 +104,9 @@
 
 (defn- parse-block [b]
   (case (first b)
-    :Header (parse-header b)
-    :List (parse-list b)
-    :Ordered (parse-ordered-list b)))
+    :heading (parse-header b)
+    :unordered-list (parse-list b)
+    :ordered-list (parse-ordered-list b)))
 
 
 (defn parse [s]
@@ -119,54 +119,141 @@
 
 ;; TESTS
 
-(deftest test-parse-span
-  (is (= (parse-span "__strong__")
-         {:e/types #{:strong} :text "strong"}))
-  (is (= (parse-span "__str ong__")
-         {:e/types #{:strong} :text "str ong"}))
-  (is (= (parse-span "__*stronganditalic*__")
-         {:e/types #{:em :strong} :text "stronganditalic"})))
+;(deftest test-parse-span
+;  (is (= (parse-span "__strong__")
+;         {:e/types #{:strong} :text "strong"}))
+;  (is (= (parse-span "__str ong__")
+;         {:e/types #{:strong} :text "str ong"}))
+;  (is (= (parse-span "__*stronganditalic*__")
+;         {:e/types #{:em :strong} :text "stronganditalic"})))
 
 
-(deftest test-grammar
-  (is (= (vec (parser "hello world\n=\n\n"))
-         [[:Header "hello" " " "world" [:h1 "="]]]))
-  (is (= (vec (parser "hello world\n-\n\n"))
-         [[:Header "hello" " " "world" [:h2 "-"]]]))
-  (is (= (vec (parser "* first line\n* second line\n\n"))
-         [[:List [:Listline " " "first" " " "line"] [:Listline " " "second" " " "line"]]])))
+
+;(deftest test-grammar
+;  (is (= (vec (parser "# hello + world\n\n"))
+;         [[:heading "#" "hello world"]]))
+;  (is (= (vec (parser "# hello world\n\n"))
+;         [[:heading "#" "hello world"]]))
+;  (is (= (vec (parser "## hello world\n\n"))
+;         [[:heading "##" "hello world"]]))
+;  (is (= (vec (parser "- first line\n- second line\n\n"))
+;         [[:unordered-list
+;           [:unordered-item "first line"]
+;           [:unordered-item "second line"]]]))
+;  (is (= (vec (parser "1. first line\n2. second line\n\n"))
+;         [[:ordered-list
+;           [:ordered-item "first line"]
+;           [:ordered-item "second line"]]]))
+;  (is (= (vec (parser "``` clojure\n(+ 1 2)\n```\n\n"))
+;         [[:pre-code [:lang "clojure"] [:codetext "(+ 1 2)"]]]))
+;  (is (= (vec (parser "```\n(+ 1 2)\n```\n\n"))
+;         [[:pre-code [:codetext "(+ 1 2)"]]])))
+;
+;
+;(deftest test-parse-block
+;  (is (= (parse-block [:heading "#" "hello + world!"])
+;         {:p/type :h1, :p/lines [{:l/elements [{:text "hello world", :e/types #{}}]}]}))
+;  (is (= (parse-block [:heading "##" "hello world"])
+;         {:p/type :h2, :p/lines [{:l/elements [{:text "hello world", :e/types #{}}]}]}))
+;  (is (= (parse-block [:heading "#" "hello world"])
+;         {:p/type :h1, :p/lines [{:text "hello ", :e/types #{}}
+;                                  {:text "world", :e/types #{:em}}]})))
 
 
-(deftest test-reduce-spans
-  (is (= (reduce-spans [])
-         []))
-  (is (= (reduce-spans [{:text "a", :e/types #{}}])
-         [{:text "a", :e/types #{}}]))
-  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}])
-         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}]))
-  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}}])
-         [{:text "ab", :e/types #{}}]))
-  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}} {:text "a", :e/types #{}}])
-         [{:text "aba", :e/types #{}}]))
-  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])
-         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])))
+
+(deftest test-parse-heading-1
+  (is (= (parse "# foo + *bar*!\n\n")
+         [{:p/type :h1, :p/lines [{:l/elements [{:e/text "foo + *bar*!", :e/types #{}}]}]}])))
+
+(deftest test-parse-heading-2
+  (is (= (parse "## foo + bar baz_?\n\n")
+         [{:p/type :h2, :p/lines [{:l/elements [{:e/text "foo + bar baz_?", :e/types #{}}]}]}])))
+
+(deftest test-parse-block-w-plain-text
+  (is (= (parse "foo *bar!\n")
+         [{:p/type :text, :p/lines [{:l/elements [{:e/text "foo *bar!", :e/types #{}}]}]}])))
+
+(deftest test-parse-block-w-modified-text
+  (is (= (parse "foo *bar baz* _qux_\n")
+         [{:p/type :text, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
+                                                  {:e/text "bar baz qux", :e/types #{:em}}]}]}])))
+
+(deftest test-parse-block-w-nested-modified-text
+  (is (= (parse "foo __*bar baz*__ _qux_.\n")
+         [{:p/type :text, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
+                                                  {:e/text "bar baz", :e/types #{:em :strong}}
+                                                  {:e/text "qux", :e/types #{:em}}
+                                                  {:e/text ".", :e/types #{}}]}]}])))
+(deftest test-parse-2-ordered-lists-w-modified-text
+    (is (= (parse (str "1. foo *bar baz*\n"
+                       "2. foo __bar baz__\n\n"
+                       "1. foo -bar baz-\n"
+                       "2. foo `bar baz`\n\n"))
+           [{:p/type :ordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
+                                                            {:e/text "bar baz", :e/types #{:em}}]}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
+                                                            {:e/text "bar baz", :e/types #{:strong}}]}]}
+            {:p/type :ordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
+                                                            {:e/text "bar baz", :e/types #{:strike}}]}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
+                                                            {:e/text "bar baz", :e/types #{:code}}]}]}])))
+(deftest test-parse-2-unordered-lists-w-modified-text
+  (is (= (parse (str "- foo *bar baz*\n"
+                     "- foo __bar baz__\n\n"
+                     "- foo -bar baz-\n"
+                     "- foo `bar baz`\n\n"))
+         [{:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
+                                                                  {:e/text "bar baz", :e/types #{:em}}]}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
+                                                            {:e/text "bar baz", :e/types #{:strong}}]}]}
+          {:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
+                                                            {:e/text "bar baz", :e/types #{:strike}}]}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
+                                                                  {:e/text "bar baz", :e/types #{:code}}]}]}])))
+
+(deftest test-parse-code-block
+  (is (= (parse (str "``` clojure\n"
+                     "(+ 1 2)\n"
+                     "(identity +)\n"
+                     "```\n"))
+          [{:p/type :code, :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
+                                     {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
 
 
-(deftest test-parse
-  ;; list:
-  (is (= (parse "* first line\n* second line\n\n")
-         [{:p/type :list, :elements [[{:text " first line", :e/types #{}}]
-                                     [{:text " second line", :e/types #{}}]]}]))
-  ;; list line with inline md:
-  (is (= (parse "* line *with* emph\n\n")
-         [{:p/type :list, :elements [[{:text " line ", :e/types #{}}
-                                      {:text "with", :e/types #{:em}}
-                                      {:text " emph", :e/types #{}}]]}]))
-  ;; ordered list:
-  (is (= (parse "1. first line\n2. second line\n\n")
-         [{:p/type :ordered-list, :elements [[{:text " first line", :e/types #{}}]
-                                             [{:text " second line", :e/types #{}}]]}]))
-  )
+
+;(deftest test-reduce-spans
+;  (is (= (reduce-spans [])
+;         []))
+;  (is (= (reduce-spans [{:text "a", :e/types #{}}])
+;         [{:text "a", :e/types #{}}]))
+;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}])
+;         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}]))
+;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}}])
+;         [{:text "ab", :e/types #{}}]))
+;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}} {:text "a", :e/types #{}}])
+;         [{:text "aba", :e/types #{}}]))
+;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])
+;         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])))
+;
+
+;(deftest test-parse
+;  ;; list:
+;  (is (= (parse "first line\n=\n\n")
+;         [{:p/type :h1, :elements [{:text "first line", :e/types #{}}]}]))
+;  ;; list:
+;  (is (= (parse "* first line\n* second line\n\n")
+;         [{:p/type :list, :elements [[{:text " first line", :e/types #{}}]
+;                                     [{:text " second line", :e/types #{}}]]}]))
+;  ;; list line with inline md:
+;  (is (= (parse "* line *with* emph\n\n")
+;         [{:p/type :list, :elements [[{:text " line ", :e/types #{}}
+;                                      {:text "with", :e/types #{:em}}
+;                                      {:text " emph", :e/types #{}}]]}]))
+;  ;; ordered list:
+;  (is (= (parse "1. first line\n2. second line\n\n")
+;         [{:p/type :ordered-list, :elements [[{:text "first line", :e/types #{}}]
+;                                             [{:text "second line", :e/types #{}}]]}]))
+;  )
 
 (deftest test-split-text-into-slides
   (is (= (split-text-into-slides "---\nslide1line1\nlide1line2\n---\nslide2line1\n")
