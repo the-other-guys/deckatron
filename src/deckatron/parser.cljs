@@ -44,17 +44,6 @@
   {:p/type type :p/lines elements})
 
 
-(defn- parse-header [block]
-  "\"## hello world\n\n\"
-  ==>
-  [:Header [:h1 \"=\"] \"hello\" \" \" \"world\" ]"
-  (let [tag (-> block second first)
-        txt (->> block rest rest (apply str))
-        header (->element txt)
-        line (->line header)]
-    (->paragraph tag [line])))
-
-
 (defn- reduce-spans [ss]
   (let [f (fn [m1 m2]
             (update m1 :text str (:text m2)))
