@@ -12,20 +12,20 @@
 
 ; # Types (please, reflect what's implementated)
 ;
-; Deck {:deck/id       <uuid-string>
+; Deck {:deck/id       <id-string>
 ;       :deck/content  <string>
-;       :user/id       <uuid-string>}
+;       :user/id       <id-string>}
 
 
 ; command {:op <keyword> -- see bellow
 ;          + :command-dependent-args ...}
 ;
 ; Commands:
-;         {:op :deck/get  :deck/id <uuid>}                        => Deck
+;         {:op :deck/get  :deck/id <id>}                          => Deck
 ;
 ; Commands that require "user-id" (via cookie):
 ;         {:op :deck/new}                                         => Deck (with a newly generated :deck/id)
-;         {:op :deck/save :deck/id <uuid> :deck/content <string>} => nil
+;         {:op :deck/save :deck/id <id> :deck/content <string>}   => nil
 ;         {:op :deck/list-mine}                                   => [Deck]
 ;
 (defn apply-api-command [user-id c]
@@ -67,7 +67,7 @@
 (defn set-user-id-cookie-if-absent [handler]
   (fn [req] ; TODO set a single path for all paths?
     (let [user-id (get-in req [:cookies "user-id" :value])]
-      (assoc-in (handler req) [:cookies "user-id"] {:value   (or user-id (u/uuid))
+      (assoc-in (handler req) [:cookies "user-id"] {:value   (or user-id (u/ssid))
                                                     :max-age (* 10 365 24 60 60)}))))
 
 (def app (-> routes set-user-id-cookie-if-absent wrap-cookies))

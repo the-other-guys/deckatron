@@ -6,16 +6,16 @@
 
 ; ~/.deckatron
 ;  + users
-;    + <user-uuid>        <-- data owned by user
+;    + <user-id>          <-- data owned by user
 ;      + decks            <-- owned decks
-;        - <deck-uuid>.md
-;        - <deck-uuid>.md
-;        - <deck-uuid>.md
+;        - <deck-id>.md
+;        - <deck-id>.md
+;        - <deck-id>.md
 ;
 ;  + decks                <-- all decks index (symlinks)
-;    - <uuid>.md
-;    - <uuid>.md
-;    - <uuid>.md
+;    - <id>.md
+;    - <id>.md
+;    - <id>.md
 
 ; dir  = directory
 ; file = file or directory
@@ -42,7 +42,7 @@
   (spit f content))
 
 (defn mk-deck [user-id]
-  {:deck/id (u/uuid)
+  {:deck/id (u/ssid)
    :user/id user-id
    :deck/content (str/join "\n"
                           ["# About me"
