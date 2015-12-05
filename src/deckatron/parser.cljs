@@ -204,8 +204,8 @@
 (deftest test-parse-2-unordered-lists-w-modified-text
   (is (= (parse (str "- foo *bar baz*\n"
                      "- foo __bar baz__\n\n"
-                     "- foo -bar baz-\n"
-                     "- foo `bar baz`\n\n"))
+                     "* foo -bar baz-\n"
+                     "* foo `bar baz`\n\n"))
          [{:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:em}}]}
                                               {:l/elements [{:e/text "foo ", :e/types #{}}
