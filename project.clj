@@ -7,6 +7,7 @@
     [compojure                  "1.4.0" :exclusions [commos-codec]]
     [com.cognitect/transit-clj  "0.8.285"]
     [com.cognitect/transit-cljs "0.8.232"]
+    [com.lucasbradstreet/instaparse-cljs "1.4.1.0"]
   ]
 
   :plugins [
