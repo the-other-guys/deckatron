@@ -42,3 +42,16 @@
    [#"__(\S+)__"           (fn [s] (->element s :strong))]
    [#"\*(\S+)\*"           (fn [s] (->element s :em))]
    [#"_(\S+)_"             (fn [s] (->element s :em))]])
+
+
+(defn- parse-span [s]
+  (let [parse-fn (fn [[regex f]]
+                   (when-let [groups (re-matches regex s)]
+                     (apply f (rest groups))))
+        res (->> SPAN-RULES
+                 (map parse-fn)
+                 (remove nil?)
+                 first)]
+    (if (nil? res)
+      (->element s)
+      res)))
