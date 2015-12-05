@@ -1,10 +1,11 @@
 (ns deckatron.server
+  (:use [compojure.core          :only [defroutes GET POST]]
+        [ring.middleware.cookies :only [wrap-cookies]])
   (:require
-    [compojure.core :as compojure]
-    [compojure.route :as route]
+    [compojure.route    :as route]
     [org.httpkit.server :as httpkit]
     [ring.util.response :as response]
-    [cognitect.transit :as t])
+    [cognitect.transit  :as t])
   (:gen-class))
 
 
@@ -22,10 +23,14 @@
     (String. (.toByteArray os) "UTF-8")))
 
 
-(compojure/defroutes app
-  (compojure/GET "/api/websocket" [:as req]
+(defn uuid [] (str (java.util.UUID/randomUUID)))
+
+(defroutes routes
+  (GET "/" [] (response/resource-response "public/index.html"))
+  (GET "/api/websocket" [:as req]
     (httpkit/with-channel req chan
-      (println "Connected")
+
+      (println "Connected from user-id" (get-in req [:cookies "user-id" :value]))
 
       (httpkit/on-close chan
         (fn [status]
@@ -34,11 +39,18 @@
       (httpkit/on-receive chan
         (fn [payload]
           (let [message (read-transit-str payload)]
-            (println "Recieved:" message)
+            (println "Received:" message)
             (httpkit/send! chan (write-transit-str ["pong" message])))))))
-  (compojure/GET "/" [] (response/resource-response "public/index.html"))
+
   (route/resources "/" {:root "public"}))
 
+(defn set-user-id-cookie-if-absent [handler]
+  (fn [req] ; TODO set a single path for all paths?
+    (let [user-id (get-in req [:cookies "user-id" :value])]
+      (assoc-in (handler req) [:cookies "user-id"] {:value   (or user-id (uuid))
+                                                    :max-age (* 10 365 24 60 60)}))))
+
+(def app (-> routes set-user-id-cookie-if-absent wrap-cookies))
 
 (defn -main [& args]
   (println "Starting server at port 8080")
