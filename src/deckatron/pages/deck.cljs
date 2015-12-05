@@ -27,10 +27,11 @@
 
 
 (add-watch *deck ::default-mode
-  (fn [_ _ _ deck]
-    (if (= core/user-id (:user/id deck))
-      (reset! *mode "Edit")
-      (reset! *mode "Read"))
+  (fn [_ _ old deck]
+    (when (nil? old) ;; first load
+      (if (= core/user-id (:user/id deck))
+        (reset! *mode "Edit")
+        (reset! *mode "Read")))
     (remove-watch *deck ::default-mode)))
 
 
@@ -88,19 +89,28 @@
                   { :class (when (pos? spectators) "menu-stats-bullet_live") }]
                   (str spectators " watching live")]]]]]]))
 
-  
+
 (rum/defc page < rum/reactive []
   (let [deck  (rum/react *deck)
         mode  (rum/react *mode)
         value (or (rum/react *pending-content)
-                  (:deck/content deck))]
+                  (:deck/content deck))
+        width (-> (rum/react core/*window-width) (/ 2))]
     [:.page_deck
       (menu deck mode)
-      [:textarea.editor 
-        { :value     value
+      
+      #_[:div.hidden-editor
+        { :style { :width (str width "px") } }
+        (str value " ")]
+     
+      [:textarea.editor
+        { :style     { :width  (str width "px")
+                       :height (str (rum/react core/*window-height) "px") }
+          :value     value
           :on-change (fn [e]
                        (reset! *pending-content (.. e -target -value))) }]
-      [:.slides
+      
+      #_[:.slides
         (for [slide (str/split value #"(?:---|===)")]
           [:.slide
             [:.slide-inner
@@ -122,7 +132,7 @@
       (aset "onmessage"
         (fn [payload]
           (let [data (u/transit->obj (.-data payload))]
-            (println "Received:" data)
+;;             (println "Received:" data)
             (swap! *deck u/patch (:patch data)))))))
 
   (rum/mount (page) (js/document.getElementById "app")))

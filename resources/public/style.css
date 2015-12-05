@@ -2,10 +2,11 @@
 html, body { height: 100%; margin: 0; padding: 0; }
 
 body, button, input, textarea { font-family: 'Slabo 27px', serif; }
+textarea { font-size: inherit; }
 
-.menu { width: 100%; position: fixed; top: 0; left: 0; background: rgba(255,255,255,0.9); }
+.menu { width: 100%; position: fixed; top: 0; left: 0; }
 
-.logo, .menu-modes, .menu-theme, .menu-stats { display: inline-block; height: 44px; line-height: 32px; border: 4px solid #FFF; border-radius: 10px; }
+.logo, .menu-modes, .menu-theme, .menu-stats { display: inline-block; height: 44px; line-height: 32px; border: 4px solid #FFF; border-radius: 10px; background: white; }
 
 .logo > div, .menu-mode, .menu-theme > div, .menu-stats > div { border: 2px solid #000; border-radius: 6px; border-bottom-width: 4px; height: 100%; }
 
@@ -31,8 +32,6 @@ body, button, input, textarea { font-family: 'Slabo 27px', serif; }
 .menu-stats-bullet_live { background: red; }
 
 
-
-
 .slide { display: inline-block; width: 40em; height: 22.5em; border: 1px solid black; margin: 2em; border-radius: 1.5em; }
 
 .slide-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5em; }
@@ -40,6 +39,13 @@ body, button, input, textarea { font-family: 'Slabo 27px', serif; }
 
 .page_home .slide { font-size: 5px; }
 
-.page_deck { padding: 5%; height: 100%; }
-.editor, .slides { width: 50%; float: left; height: 500px; }
-.slides { font-size: 7px; }
+.page_deck { }
+/* .editor, .slides { float: left; } */
+
+.editor, .hidden-editor { background-color: #EEE; font-size: 24px; line-height: 32px; }
+.editor { padding: 130px 15px 60px 60px; border: none; outline: none; display: block; resize: none; }
+
+.hidden-editor { white-space: pre-wrap; word-break: break-word; color: blue; position: absolute; top: 100px; left: 50%; visibility: hidden; }
+
+
+.slides { font-size: 7px; opacity: 0 }
