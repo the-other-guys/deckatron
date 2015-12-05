@@ -160,6 +160,10 @@
 ;                                  {:text "world", :e/types #{:em}}]})))
 
 
+(deftest test-parse-url
+  (is (= (parse "[key note]https://www.youtube.com/watch?v=FihU5JxmnBg\n\n")
+         [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:link}
+                                                   :e/href "https://www.youtube.com/watch?v=FihU5JxmnBg"}]}]}])))
 
 (deftest test-parse-heading-1
   (is (= (parse "# foo + *bar*!\n\n")
