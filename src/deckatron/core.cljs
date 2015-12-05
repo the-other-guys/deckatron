@@ -11,6 +11,8 @@
 (println ":user/id" user-id)
 
 
+(def aspect (/ 16 9))
+
 (defonce *window-width (atom 0))
 (defonce *window-height (atom 0))
 

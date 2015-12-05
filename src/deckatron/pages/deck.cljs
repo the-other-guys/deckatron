@@ -9,7 +9,8 @@
     [cljs.core.async :refer [put! chan <! >! timeout]]
     [deckatron.parser :as parser]
     [deckatron.pages.edit :as edit]
-    [deckatron.pages.read :as read]))
+    [deckatron.pages.read :as read]
+    [deckatron.pages.present :as present]))
 
 
 (enable-console-print!)
@@ -72,8 +73,9 @@
     [:.page_deck
       (menu (rum/react *deck) mode)
       (case mode
-        "Edit" (edit/edit-page *deck socket)
-        "Read" (read/read-page *deck)
+        "Edit"    (edit/edit-page *deck socket)
+        "Read"    (read/read-page *deck)
+        "Present" (present/present-page *deck socket)
         (edit/edit-page *deck socket))]))
 
 
