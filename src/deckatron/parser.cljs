@@ -280,7 +280,7 @@
 ;                                             [{:text "second line", :e/types #{}}]]}]))
 ;  )
 
-(deftest test-split-text-into-slides
+(deftest test-split-text-into-slides-1
   (is (= (split-text-into-slides (str "---\n" "comment1 line1\ncomment1 line2\n"
                                       "===\n" "slide1 line1\nslide1 line2\n"
                                       "---\n" "comment2 line1\ncomment2 line2\n"
@@ -288,6 +288,18 @@
                                       "===\n" "slide3 line1\nslide3 line2\n"))
          [{:s/type :comment :s/text "comment1 line1\ncomment1 line2\n"}
           {:s/type :slide :s/text "slide1 line1\nslide1 line2\n"}
+          {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
+          {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
+          {:s/type :slide :s/text "slide3 line1\nslide3 line2\n"}])))
+
+(deftest test-split-text-into-slides-2
+  (is (= (split-text-into-slides (str "===\n" "slide1 line1\nslide1 line2\n"
+                                      "---\n" "comment1 line1\ncomment1 line2\n"
+                                      "---\n" "comment2 line1\ncomment2 line2\n"
+                                      "===\n" "slide2 line1\nslide2 line2\n"
+                                      "===\n" "slide3 line1\nslide3 line2\n"))
+         [{:s/type :slide :s/text "slide1 line1\nslide1 line2\n"}
+          {:s/type :comment :s/text "comment1 line1\ncomment1 line2\n"}
           {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
           {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
           {:s/type :slide :s/text "slide3 line1\nslide3 line2\n"}])))
