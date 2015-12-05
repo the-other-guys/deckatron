@@ -31,7 +31,7 @@
     <Word> = #'\\S+'
     <EOL> = <'\\n'>"))
 
-(defn ->element
+(defn- ->element
   [s & types]
   {:text s :e/types (set types)})
 
