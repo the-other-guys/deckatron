@@ -1,8 +1,11 @@
 (ns deckatron.pages.deck
+  (:require-macros
+    [cljs.core.async.macros :refer [go]])
   (:require
     [clojure.string :as str]
     [rum.core :as rum]
     [deckatron.util :as u]
+    [cljs.core.async :refer [put! chan <! >! timeout]]
     [deckatron.parser :as parser]))
 
 
@@ -13,6 +16,7 @@
 
 
 (defonce *deck (atom nil))
+(defonce *deck-id (atom nil))
 
 
 (defonce *pending-content (atom nil))
@@ -57,6 +61,9 @@
 
 
 (defn refresh! [deck-id]
+  (when-not @*deck-id
+    (reset! *deck-id deck-id))
+
   (when socket
     (.close socket)
     (reset! *deck nil))
@@ -70,8 +77,22 @@
           (let [data (u/transit->obj (.-data payload))]
             (println "Received:" data)
             (swap! *deck u/patch (:patch data)))))))
-  
+
   (rum/mount (page) (js/document.getElementById "app")))
 
 
+(def TEST-CONNECTION-INTERVAL 5000)
 
+(defn socket-closed? [s]
+  (if-not s
+    true
+    (= 3 (.-readyState socket))))
+
+(go
+  (while true
+    (<! (timeout TEST-CONNECTION-INTERVAL))
+    (if (socket-closed? socket)
+      (do
+        (println (str "connection died, reconnecting with deck-id: " @*deck-id))
+        (refresh! @*deck-id))
+      (println (str "connection is alive, deck-id: " @*deck-id ", socket status: " (.-readyState socket))))))

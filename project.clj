@@ -2,6 +2,7 @@
   :dependencies [
     [org.clojure/clojure        "1.7.0"]
     [org.clojure/clojurescript  "1.7.189"]
+    [org.clojure/core.async     "0.2.374"]
     [rum                        "0.6.0"]
     [http-kit                   "2.1.19"]
     [compojure                  "1.4.0" :exclusions [commos-codec]]
