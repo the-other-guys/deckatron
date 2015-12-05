@@ -126,6 +126,8 @@
          (remove #(clojure.string/blank? (:s/text %)))
          vec)))
 
+(defn parse-slide [s]
+  (assoc s :s/paragraphs (parse (:s/text s))))
 
 ;; TESTS
 
@@ -280,7 +282,7 @@
 ;                                             [{:text "second line", :e/types #{}}]]}]))
 ;  )
 
-(deftest test-split-text-into-slides-1
+(deftest test-split-text-into-slides
   (is (= (split-text-into-slides (str "---\n" "comment1 line1\ncomment1 line2\n"
                                       "===\n" "slide1 line1\nslide1 line2\n"
                                       "---\n" "comment2 line1\ncomment2 line2\n"
@@ -290,9 +292,8 @@
           {:s/type :slide :s/text "slide1 line1\nslide1 line2\n"}
           {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
           {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
-          {:s/type :slide :s/text "slide3 line1\nslide3 line2\n"}])))
+          {:s/type :slide :s/text "slide3 line1\nslide3 line2\n"}]))
 
-(deftest test-split-text-into-slides-2
   (is (= (split-text-into-slides (str "===\n" "slide1 line1\nslide1 line2\n"
                                       "---\n" "comment1 line1\ncomment1 line2\n"
                                       "---\n" "comment2 line1\ncomment2 line2\n"
@@ -303,5 +304,13 @@
           {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
           {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
           {:s/type :slide :s/text "slide3 line1\nslide3 line2\n"}])))
+
+(deftest test-parse-slide
+  (is (= (parse-slide {:s/type :comment
+                       :s/text "# foo + *bar*!\n\n"})
+         {:s/type :comment
+          :s/text "# foo + *bar*!\n\n"
+          :s/paragraphs (parse "# foo + *bar*!\n\n")})))
+
 
 (run-tests)
