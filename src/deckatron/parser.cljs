@@ -41,12 +41,25 @@
 
 
 (def ^:private SPAN-RULES
-  ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L36
+  ;; https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L36
+  ;; order matters!
   [[#"`(\S+)`"             (fn [s] (->element s :code))]
    [#"\*\*(\S+)\*\*"       (fn [s] (->element s :strong))]
+   [#"__\*(\S+)\*__"       (fn [s] (->element s :em :strong))]
    [#"__(\S+)__"           (fn [s] (->element s :strong))]
    [#"\*(\S+)\*"           (fn [s] (->element s :em))]
    [#"_(\S+)_"             (fn [s] (->element s :em))]])
+
+
+(defn- parse-header [block]
+  "'hello world\n=\n\n'
+  ==>
+  [:Header \"hello\" \" \" \"world\" [:h1 \"=\"]]"
+  (let [tag (-> block last first)
+        txt (-> block rest drop-last)
+        header {:e/types #{tag}
+                :text (apply str txt)}]
+    (->paragraph :text [header])))
 
 
 (defn- parse-span [s]
@@ -81,29 +94,29 @@
   (let [lines (mapv parse-list-line (rest block))]
     (->paragraph :list lines)))
 
-(defn- parse-header [block]
-  "'hello world\n=\n\n'
-  ==>
-  [:Header \"hello\" \" \" \"world\" [:h1 \"=\"]]"
-  (let [tag (-> block last first)
-        txt (-> block rest drop-last)
-        header {:e/types #{tag}
-                :text (apply str txt)}]
-    (->paragraph :text [header])))
+
+(defn- parse-ordered-list [block]
+  (assoc (parse-list block) :type :ordered-list))
 
 
 (defn- parse-block [b]
   (case (first b)
     :Header (parse-header b)
-    :List (parse-list b)))
+    :List (parse-list b)
+    :Ordered (parse-ordered-list b)))
 
 
 (defn parse [s]
   (->> s parser (mapv parse-block)))
 
 
-(parse "* one one\n* two two\n\n")
-[{:p/type :list, :elements [[{:text " one one", :e/types #{}}] [{:text " two two", :e/types #{}}]]}]
+;; TESTS
+
+(deftest test-parse-span
+  (is (= (parse-span "__strong__")
+         {:e/types #{:strong} :text "strong"}))
+  (is (= (parse-span "__*stronganditalic*__")
+         {:e/types #{:em :strong} :text "stronganditalic"})))
 
 
 (deftest test-grammar

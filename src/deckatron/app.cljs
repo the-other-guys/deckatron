@@ -1,7 +1,8 @@
 (ns deckatron.app
   (:require
     [rum.core :as rum]
-    [cognitect.transit :as t]))
+    [cognitect.transit :as t]
+    [deckatron.parser :as parser]))
 
 
 (enable-console-print!)
