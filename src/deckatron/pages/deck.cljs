@@ -14,7 +14,7 @@
 (defonce *deck (atom nil))
 
 
-(add-watch *deck ::log (fn [_ _ _ v] (println "Deck:" v)))
+;; (add-watch *deck ::log (fn [_ _ _ v] (println "Deck:" v)))
 
 
 (rum/defc page < rum/reactive []
@@ -28,6 +28,7 @@
     (.close socket)
     (reset! *deck nil))
   
+  (println "Loading deck" deck-id)
   (set! socket
     (doto (js/WebSocket. (str "ws://" js/location.host "/api/deck/" deck-id))
       (aset "onmessage"

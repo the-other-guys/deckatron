@@ -2,6 +2,7 @@
   (:require
     [rum.core :as rum]
     [deckatron.util :as u]
+    [deckatron.core :as core]
     [deckatron.parser :as parser]))
 
 
@@ -14,7 +15,7 @@
 (defonce *decks (atom {}))
 
 
-(add-watch *decks ::log (fn [_ _ _ v] (println "Decks:" v)))
+;; (add-watch *decks ::log (fn [_ _ _ v] (println "Decks:" v)))
 
 
 (rum/defc page < rum/reactive []
@@ -31,7 +32,8 @@
   (when socket
     (.close socket)
     (reset! *decks {}))
-  
+
+  (println "Loading decks list")
   (set! socket
     (doto (js/WebSocket. (str "ws://" js/location.host "/api/decks"))
       (aset "onmessage"
