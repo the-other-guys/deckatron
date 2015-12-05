@@ -7,7 +7,8 @@
     [deckatron.core :as core]
     [deckatron.util :as u]
     [cljs.core.async :refer [put! chan <! >! timeout]]
-    [deckatron.parser :as parser]))
+    [deckatron.parser :as parser]
+    [deckatron.pages.edit :as edit]))
 
 
 (enable-console-print!)
@@ -20,9 +21,6 @@
 (defonce *deck-id (atom nil))
 
 
-(defonce *pending-content (atom nil))
-
-
 (defonce *mode (atom nil))
 
 
@@ -33,28 +31,6 @@
         (reset! *mode "Edit")
         (reset! *mode "Read")))
     (remove-watch *deck ::default-mode)))
-
-
-(defn send! [message]
-  (when (== 1 (.-readyState socket)) ;; WS_OPEN
-    (.send socket (u/obj->transit message))))
-
-
-;; TODO add local storage persistence
-(add-watch *pending-content ::send
-  (fn [_ _ old new]
-    (when (nil? old)
-      (js/setTimeout
-        (fn []
-          (let [content @*pending-content
-                deck    @*deck]
-            ;; TODO check that message was actually sent
-            (send! { :deck/id (:deck/id deck)
-                     :patch   [{:deck/content (:deck/content deck)}
-                               {:deck/content content}] })
-            (swap! *deck assoc :deck/content content)
-            (reset! *pending-content nil)))
-       1000))))
 
 
 (rum/defc menu-mode [text mode]
@@ -90,33 +66,13 @@
                   (str spectators " watching live")]]]]]]))
 
 
-(rum/defc page < rum/reactive []
-  (let [deck  (rum/react *deck)
-        mode  (rum/react *mode)
-        value (or (rum/react *pending-content)
-                  (:deck/content deck))
-        width  (-> (rum/react core/*window-width) (/ 2))
-        height (rum/react core/*window-height) ]
-    [:.page_deck_edit
-      (menu deck mode)
-      
-      #_[:div.hidden-editor
-        { :style { :width (str width "px") } }
-        (str value " ")]
-     
-      [:textarea.editor
-        { :style     { :width  (str width "px")
-                       :height (str height "px") }
-          :value     value
-          :on-change (fn [e]
-                       (reset! *pending-content (.. e -target -value))) }]
-      
-      [:.slides
-        { :style { :width  (str width "px")
-                   :height (str height "px")
-                   :font-size (-> width (/ 440) (* 10) (str "px")) } }
-        (for [text (str/split value #"(?:---|===)")]
-          (core/slide text))]]))
+(rum/defc deck-page < rum/reactive []
+  (let [mode (rum/react *mode)]
+    [:.page_deck
+      (menu (rum/react *deck) mode)
+      (case mode
+        "Edit" (edit/edit-page *deck socket)
+        (edit/edit-page *deck socket))]))
 
 
 (defn refresh! [deck-id]
@@ -137,7 +93,7 @@
 ;;             (println "Received:" data)
             (swap! *deck u/patch (:patch data)))))))
 
-  (rum/mount (page) (js/document.getElementById "app")))
+  (rum/mount (deck-page) (js/document.getElementById "app")))
 
 
 (def TEST-CONNECTION-INTERVAL 5000)
