@@ -5,6 +5,9 @@
 
 (enable-console-print!)
 
+
+(def ^:private SLIDES-SEPARATOR #"---\n")
+
 (def ^:private parser
   ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L9
   (insta/parser
@@ -96,7 +99,7 @@
 
 
 (defn- parse-ordered-list [block]
-  (assoc (parse-list block) :type :ordered-list))
+  (assoc (parse-list block) :p/type :ordered-list))
 
 
 (defn- parse-block [b]
@@ -110,11 +113,17 @@
   (->> s parser (mapv parse-block)))
 
 
+(defn split-text-into-slides [t]
+  (remove clojure.string/blank? (clojure.string/split t SLIDES-SEPARATOR)))
+
+
 ;; TESTS
 
 (deftest test-parse-span
   (is (= (parse-span "__strong__")
          {:e/types #{:strong} :text "strong"}))
+  (is (= (parse-span "__str ong__")
+         {:e/types #{:strong} :text "str ong"}))
   (is (= (parse-span "__*stronganditalic*__")
          {:e/types #{:em :strong} :text "stronganditalic"})))
 
@@ -143,7 +152,6 @@
          [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])))
 
 
-
 (deftest test-parse
   ;; list:
   (is (= (parse "* first line\n* second line\n\n")
@@ -154,7 +162,14 @@
          [{:p/type :list, :elements [[{:text " line ", :e/types #{}}
                                       {:text "with", :e/types #{:em}}
                                       {:text " emph", :e/types #{}}]]}]))
+  ;; ordered list:
+  (is (= (parse "1. first line\n2. second line\n\n")
+         [{:p/type :ordered-list, :elements [[{:text " first line", :e/types #{}}]
+                                             [{:text " second line", :e/types #{}}]]}]))
   )
 
+(deftest test-split-text-into-slides
+  (is (= (split-text-into-slides "---\nslide1line1\nlide1line2\n---\nslide2line1\n")
+         '("slide1line1\nlide1line2\n" "slide2line1\n"))))
 
 (run-tests)
