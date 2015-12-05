@@ -87,3 +87,6 @@
         minus (patch-delete minus)
         plus  (patch-add plus)))))
 
+
+(defn width->font-size [w]
+  (-> w (/ 440) (* 10)))

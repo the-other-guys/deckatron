@@ -32,20 +32,21 @@ textarea { font-size: inherit; }
 .menu-stats-bullet_live { background: red; }
 
 
-.slide { display: inline-block; width: 40em; height: 22.5em; border: 0.3em solid black; margin: 2em; border-radius: 1.5em; white-space: pre-wrap; word-break: break-word; }
+.slide { display: block; width: 40em; height: 22.5em; border: 0.3em solid black; margin: 2em; border-radius: 1.5em; white-space: pre-wrap; word-break: break-word; }
 
 .slide-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5em; }
 .slide_43 { height: 30em; }
 
-.page_home .slide { font-size: 5px; }
+.page_home .slide { font-size: 5px; display: inline-block; }
 
-.page_deck_edit { }
 
-.editor, .slides { float: left; }
+.page_deck-edit > .editor, 
+.page_deck-edit > .slides { float: left; }
+.page_deck-edit > .slides { overflow: scroll; padding: 90px 0 60px; }
 
 .editor, .hidden-editor { background-color: #EEE; font-size: 24px; line-height: 32px; }
 .editor { padding: 130px 15px 60px 60px; border: none; outline: none; display: block; resize: none; }
 
 .hidden-editor { white-space: pre-wrap; word-break: break-word; color: blue; position: absolute; top: 100px; left: 50%; visibility: hidden; }
 
-.slides { overflow: scroll; padding: 90px 0 60px; }
+.page_deck-read > .slides { margin: 0 auto; padding: 90px 0 60px; }

@@ -28,7 +28,11 @@
 (js/window.onresize)
 
 
-(rum/defc slide [text]
+(defn slides [content]
+  (str/split content #"(?:---|===)"))
+
+
+(rum/defc slide [slide]
   [:.slide
     [:.slide-inner
-      [:.slide-text (str/trim text)]]])
+      [:.slide-text (str/trim slide)]]])

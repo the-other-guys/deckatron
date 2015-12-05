@@ -37,21 +37,21 @@
 
 
 (rum/defc edit-page < rum/reactive [*deck socket]
-  (let [deck  (rum/react *deck)
-        value (or (rum/react *pending-content)
-                  (:deck/content deck))
-        width  (-> (rum/react core/*window-width) (/ 2))
-        height (rum/react core/*window-height) ]
-    [:.page_deck_edit
+  (let [deck    (rum/react *deck)
+        content (or (rum/react *pending-content)
+                    (:deck/content deck))
+        width   (-> (rum/react core/*window-width) (/ 2))
+        height  (rum/react core/*window-height) ]
+    [:.page_deck-edit
       
       #_[:div.hidden-editor
         { :style { :width (str width "px") } }
-        (str value " ")]
+        (str content " ")]
      
       [:textarea.editor
         { :style     { :width  (str width "px")
                        :height (str height "px") }
-          :value     value
+          :value     content
           :on-change (fn [e]
                        (schedule-send! *deck socket (.. e -target -value))) }]
                                                   
@@ -59,6 +59,6 @@
       [:.slides
         { :style { :width  (str width "px")
                    :height (str height "px")
-                   :font-size (-> width (/ 440) (* 10) (str "px")) } }
-        (for [text (str/split value #"(?:---|===)")]
-          (core/slide text))]]))
+                   :font-size (str (u/width->font-size width) "px") } }
+        (for [slide (core/slides content)]
+          (core/slide slide))]]))
