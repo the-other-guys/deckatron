@@ -24,8 +24,9 @@
     Ordered = Orderedline+ Blankline+
     Orderedline = Orderedmarker Whitespace* Word (Whitespace Word)* EOL
     <Orderedmarker> = <#'[0-9]+\\.'>
-    Code = Codeline+ Blankline+
-    Codeline = <Space Space Space Space> (Whitespace | Word)* EOL
+    Code = <'``` '> Language EOL Codeline+ <'```'> Blankline+
+    Language = Word
+    Codeline = Line
     Rule = Ruleline Blankline+
     <Ruleline> = <'+'+ | '*'+ | '-'+>
     Paragraph = Line+ Blankline+
@@ -107,8 +108,23 @@
   (assoc (parse-list block) :p/type :ordered-list))
 
 
+(defn- parse-code-line [line]
+  (let [txt (->> line rest (apply str))
+        el (->element txt)]
+   (->line el)))
+
+(defn- parse-code [b]
+  "[:Code [:Language \"\"] [:Codeline & strs] [:Codeline & strs]]"
+  (let [lang (-> b second second)
+        lines (->> b
+                   rest
+                   rest
+                   (mapv parse-code-line))]
+    (assoc (->paragraph :code lines) :p/language lang)))
+
 (defn- parse-block [b]
   (case (first b)
+    :Code (parse-code b)
     :Header (parse-header b)
     :List (parse-list b)
     :Ordered (parse-ordered-list b)))
@@ -247,8 +263,10 @@
                      "(+ 1 2)\n"
                      "(identity +)\n"
                      "```\n"))
-          [{:p/type :code, :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
-                                     {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
+          [{:p/type :code,
+            :p/language "clojure"
+            :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
+                      {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
 
 
 
