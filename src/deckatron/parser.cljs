@@ -55,3 +55,23 @@
     (if (nil? res)
       (->element s)
       res)))
+
+(defn- reduce-spans [ss]
+  (let [f (fn [m1 m2]
+            (update m1 :text str (:text m2)))
+        by-types (partition-by :e/types ss)]
+    (mapv #(reduce f %) by-types)))
+
+(defn- parse-list-line [line]
+  (->> (rest line)
+       (map parse-span)
+       reduce-spans))
+
+(defn- parse-list [block]
+  "'* one\n* two\n\n'
+  ==>
+  [:List
+   [:Listline \" \" \"one\"]
+   [:Listline \" \" \"two\"]]"
+  (let [lines (mapv parse-list-line (rest block))]
+    {:p/type :list :elements lines}))
