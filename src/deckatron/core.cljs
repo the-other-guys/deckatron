@@ -1,4 +1,7 @@
-(ns deckatron.core)
+(ns deckatron.core
+  (:require
+    [rum.core :as rum]
+    [clojure.string :as str]))
 
 
 (enable-console-print!)
@@ -23,3 +26,9 @@
 
 
 (js/window.onresize)
+
+
+(rum/defc slide [text]
+  [:.slide
+    [:.slide-inner
+      [:.slide-text (str/trim text)]]])

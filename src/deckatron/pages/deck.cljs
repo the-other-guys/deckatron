@@ -95,8 +95,9 @@
         mode  (rum/react *mode)
         value (or (rum/react *pending-content)
                   (:deck/content deck))
-        width (-> (rum/react core/*window-width) (/ 2))]
-    [:.page_deck
+        width  (-> (rum/react core/*window-width) (/ 2))
+        height (rum/react core/*window-height) ]
+    [:.page_deck_edit
       (menu deck mode)
       
       #_[:div.hidden-editor
@@ -105,16 +106,17 @@
      
       [:textarea.editor
         { :style     { :width  (str width "px")
-                       :height (str (rum/react core/*window-height) "px") }
+                       :height (str height "px") }
           :value     value
           :on-change (fn [e]
                        (reset! *pending-content (.. e -target -value))) }]
       
-      #_[:.slides
-        (for [slide (str/split value #"(?:---|===)")]
-          [:.slide
-            [:.slide-inner
-              [:.slide-text slide]]])]]))
+      [:.slides
+        { :style { :width  (str width "px")
+                   :height (str height "px")
+                   :font-size (-> width (/ 440) (* 10) (str "px")) } }
+        (for [text (str/split value #"(?:---|===)")]
+          (core/slide text))]]))
 
 
 (defn refresh! [deck-id]
