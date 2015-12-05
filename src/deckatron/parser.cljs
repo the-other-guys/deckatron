@@ -35,7 +35,7 @@
   [s & types]
   {:text s :e/types (set types)})
 
-(def SPAN-RULES
+(def ^:private SPAN-RULES
   ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L36
   [[#"`(\S+)`"             (fn [s] (->element s :code))]
    [#"\*\*(\S+)\*\*"       (fn [s] (->element s :strong))]
