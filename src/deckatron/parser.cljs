@@ -92,3 +92,7 @@
   (case (first b)
     :Header (parse-header b)
     :List (parse-list b)))
+
+
+(defn parse [s]
+  (->> s parser (mapv parse-block)))
