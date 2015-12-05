@@ -30,7 +30,10 @@
                            (update :count inc)
                            (assoc :message message))))))
     (aset "onopen"
-      #(send! "connected"))))
+      (fn []
+        (send! {:op :deck/new})
+        ;(send! {:op :deck/save :id :TODO-fetch-from-response :content (str (new js/Date))})
+        (send! {:op :deck/list-mine})))))
 
 
 (defn send! [message]

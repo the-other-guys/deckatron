@@ -14,9 +14,12 @@
     [lein-figwheel  "0.5.0-2"]
   ]
 
-  :aliases      { "package" ["do"
-                             "cljsbuild" "once" "advanced,"
-                             "uberjar"] }
+  :aliases      { "package"   ["do"
+                               "cljsbuild" "once" "advanced,"
+                               "uberjar"]
+                  "build-run" ["do"
+                               "cljsbuild" "once,"
+                               "run"] }
   :aot          [ deckatron.server ]
   :uberjar-name "deckatron.jar"
   :uberjar-exclusions [#"public/js/out"]
