@@ -55,6 +55,7 @@
     (reset! *decks {}))
 
   (println "Loading decks list")
+  ;; TODO watch websocket status, reconnect
   (set! socket
     (doto (js/WebSocket. (str "ws://" js/location.host "/api/decks"))
       (aset "onmessage"

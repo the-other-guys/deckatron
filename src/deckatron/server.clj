@@ -42,9 +42,11 @@
   
   (GET "/create-deck" [:as req]
     (let [user-id (:user/id req)
-          deck    (storage/create-deck! user-id)]
+          deck    (storage/create-deck! user-id)
+          deck-id (:deck/id deck)]
+       (println "Created" deck-id)
        { :status  302
-         :headers {"Location" (str "/deck/" (:deck/id deck))}}))
+         :headers {"Location" (str "/deck/" deck-id)}}))
   
   
   ;; on connect -> { :deck/id ..., :patch ... } (separate msg for each deck)
@@ -97,7 +99,7 @@
                   old (storage/get-deck deck-id)]
               (when (not= (:user/id old) user-id)
                 (u/die "Access denied" { :deck/id deck-id, :user/id user-id }))
-              (println "Updating deck" deck-id)
+              (println "Updating" deck-id)
               (storage/update-deck! deck-id patch)
               ;; TODO broadcast
               ))))))

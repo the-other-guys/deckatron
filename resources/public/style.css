@@ -1,5 +1,5 @@
-body { }
-#app { }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
 
 
 .slide { display: inline-block; width: 40em; height: 22.5em; border: 1px solid black; margin: 2em; border-radius: 1.5em; }
@@ -7,8 +7,8 @@ body { }
 .slide-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5em; }
 .slide_43 { height: 30em; }
 
-
 .page_home .slide { font-size: 5px; }
 
-
-
+.page_deck { padding: 5%; height: 100%; }
+.editor, .slides { width: 50%; float: left; height: 500px; }
+.slides { font-size: 7px; }

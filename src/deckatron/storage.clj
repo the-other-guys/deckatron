@@ -50,6 +50,7 @@
 
 
 (defn update-deck! [deck-id patch]
+  ;; TODO verify deck hash?
   (let [old (get-deck deck-id)
         new (u/patch old patch)]
     (save-deck! new)))

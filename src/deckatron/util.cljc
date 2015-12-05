@@ -81,9 +81,9 @@
 
 (defn patch [o diff]
   (let [[minus plus] diff]
-    (if (nil? minus)
+    (if (nil? o)
       plus
-      (-> o
-          (patch-delete minus)
-          (patch-add plus)))))
+      (cond-> o
+        minus (patch-delete minus)
+        plus  (patch-add plus)))))
 
