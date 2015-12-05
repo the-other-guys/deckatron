@@ -1,7 +1,9 @@
 (ns deckatron.parser
   (:require
-    [instaparse.core :as insta]))
+    [instaparse.core :as insta]
+    [cljs.test :refer-macros [deftest testing is run-tests]]))
 
+(enable-console-print!)
 
 (def ^:private parser
   ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L9
@@ -98,3 +100,22 @@
 
 (defn parse [s]
   (->> s parser (mapv parse-block)))
+
+
+(parse "* one one\n* two two\n\n")
+[{:p/type :list, :elements [[{:text " one one", :e/types #{}}] [{:text " two two", :e/types #{}}]]}]
+
+(deftest test-parse
+  ;; list:
+  (is (= (parse "* first line\n* second line\n\n")
+         [{:p/type :list, :elements [[{:text " first line", :e/types #{}}]
+                                     [{:text " second line", :e/types #{}}]]}]))
+  ;; list line with inline md:
+  (is (= (parse "* line *with* emph\n\n")
+         [{:p/type :list, :elements [[{:text " line ", :e/types #{}}
+                                      {:text "with", :e/types #{:em}}
+                                      {:text " emph", :e/types #{}}]]}]))
+  )
+
+
+(run-tests)
