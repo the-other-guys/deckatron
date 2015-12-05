@@ -185,12 +185,12 @@
                                                   {:e/text "qux", :e/types #{:em}}
                                                   {:e/text ".", :e/types #{}}]}]}])))
 (deftest test-parse-2-ordered-lists-w-modified-text
-    (is (= (parse (str "1. foo *bar baz*\n"
+    (is (= (parse (str "1. foo **bar baz**\n"
                        "2. foo __bar baz__\n\n"
-                       "1. foo -bar baz-\n"
+                       "1. foo ~bar baz~\n"
                        "2. foo `bar baz`\n\n"))
            [{:p/type :ordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
-                                                            {:e/text "bar baz", :e/types #{:em}}]}
+                                                            {:e/text "bar baz", :e/types #{:strong}}]}
                                               {:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strong}}]}]}
             {:p/type :ordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
