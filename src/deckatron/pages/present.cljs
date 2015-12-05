@@ -47,6 +47,7 @@
 
 
 (rum/defc present-page < rum/reactive
+                         { :will-mount (fn [s] (reset! *slide 0) s) }
   [*deck socket]
   (let [deck   (rum/react *deck)
         width  (rum/react core/*window-width)
