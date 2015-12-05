@@ -75,3 +75,14 @@
    [:Listline \" \" \"two\"]]"
   (let [lines (mapv parse-list-line (rest block))]
     {:p/type :list :elements lines}))
+
+(defn- parse-header [block]
+  "'hello world\n=\n\n'
+  ==>
+  [:Header \"hello\" \" \" \"world\" [:h1 \"=\"]]"
+  (let [tag (-> block last first)
+        txt (-> block rest drop-last)
+        ;spans (map parse-span txt)
+        header {:e/types #{tag}
+                :text (apply str txt)}]
+    {:p/type :text :elements [header]}))
