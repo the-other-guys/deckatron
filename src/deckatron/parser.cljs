@@ -13,10 +13,11 @@
   ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L9
   (insta/parser
     "<Blocks> = (Paragraph | Header | List | Ordered | Code | Rule)+
-    Header = Line Headerline Blankline+
-    <Headerline> = (h1 | h2)
+    Header = (h1 | h2 | h3 | h4) Line Blankline+
     h1 = '# '
     h2 = '## '
+    h3 = '### '
+    h4 = '#### '
     List = Listline+ Blankline+
     Listline = Listmarker Whitespace+ Word (Whitespace Word)* EOL
     <Listmarker> = <'+' | '*' | '-'>
@@ -38,10 +39,13 @@
     <EOL> = <'\\n'>"))
 
 (defn- ->element [s & types]
-  {:text s :e/types (set types)})
+  {:e/text s :e/types (set types)})
 
-(defn- ->paragraph [type elements]
-  {:p/type type :elements elements})
+(defn- ->line [& elements]
+  {:l/elements elements})
+
+(defn- ->paragraph [type lines]
+  {:p/type type :p/lines lines})
 
 
 (def ^:private SPAN-RULES
@@ -56,14 +60,14 @@
 
 
 (defn- parse-header [block]
-  "'hello world\n=\n\n'
+  "\"## hello world\n\n\"
   ==>
-  [:Header \"hello\" \" \" \"world\" [:h1 \"=\"]]"
-  (let [tag (-> block last first)
-        txt (-> block rest drop-last)
-        header {:e/types #{}
-                :text (apply str txt)}]
-    (->paragraph tag [header])))
+  [:Header [:h1 \"=\"] \"hello\" \" \" \"world\" ]"
+  (let [tag (-> block second first)
+        txt (->> block rest rest (apply str))
+        header (->element txt)
+        line (->line header)]
+    (->paragraph tag [line])))
 
 
 (defn- parse-span [s]
@@ -105,7 +109,7 @@
 
 (defn- parse-block [b]
   (case (first b)
-    :heading (parse-header b)
+    :Header (parse-header b)
     :unordered-list (parse-list b)
     :ordered-list (parse-ordered-list b)))
 
