@@ -161,7 +161,7 @@
 
 
 (deftest test-parse-url
-  (is (= (parse "[key note]https://www.youtube.com/watch?v=FihU5JxmnBg\n\n")
+  (is (= (parse "[key note](https://www.youtube.com/watch?v=FihU5JxmnBg)\n\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:link}
                                                    :e/href "https://www.youtube.com/watch?v=FihU5JxmnBg"}]}]}])))
 
@@ -214,6 +214,12 @@
                                                             {:e/text "bar baz", :e/types #{:strike}}]}
                                               {:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:code}}]}]}])))
+
+(deftest test-parse-blockquote
+  (is (= (parse (str "> foo bar baz\n"
+                     "> foo bar baz\n\n"))
+         [{:p/type :blockquote, :p/lines [{:l/elements [{:e/text "foo bar baz", :e/types #{}}]}
+                                          {:l/elements [{:e/text "foo bar baz", :e/types #{}}]}]}])))
 
 (deftest test-parse-code-block
   (is (= (parse (str "``` clojure\n"
