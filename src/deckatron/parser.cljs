@@ -31,9 +31,12 @@
     <Word> = #'\\S+'
     <EOL> = <'\\n'>"))
 
-(defn- ->element
-  [s & types]
+(defn- ->element [s & types]
   {:text s :e/types (set types)})
+
+(defn- ->paragraph [type elements]
+  {:p/type type :elements elements})
+
 
 (def ^:private SPAN-RULES
   ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L36
@@ -74,7 +77,7 @@
    [:Listline \" \" \"one\"]
    [:Listline \" \" \"two\"]]"
   (let [lines (mapv parse-list-line (rest block))]
-    {:p/type :list :elements lines}))
+    (->paragraph :list lines)))
 
 (defn- parse-header [block]
   "'hello world\n=\n\n'
@@ -82,10 +85,9 @@
   [:Header \"hello\" \" \" \"world\" [:h1 \"=\"]]"
   (let [tag (-> block last first)
         txt (-> block rest drop-last)
-        ;spans (map parse-span txt)
         header {:e/types #{tag}
                 :text (apply str txt)}]
-    {:p/type :text :elements [header]}))
+    (->paragraph :text [header])))
 
 
 (defn- parse-block [b]
