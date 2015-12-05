@@ -18,14 +18,35 @@
 ;; (add-watch *decks ::log (fn [_ _ _ v] (println "Decks:" v)))
 
 
+(rum/defc deck [deck]
+  [:a.slide {:href (str "/deck/" (:deck/id deck))}
+    [:.slide-inner
+      [:.slide-text (:deck/id deck)]]])
+
+
+(rum/defc decks-list [decks & [comp]]
+  [:.decks-list
+    (for [d (sort-by :deck/id decks)]
+      (deck d))
+    comp])
+
+
 (rum/defc page < rum/reactive []
-  (let [decks (rum/react *decks)]
-    [:.decks
-      (for [[deck-id deck] (sort-by :deck/id decks)]
-        [:.deck
-          [:a {:href (str "/deck/" deck-id)} deck-id]])
-      [:.deck
-        [:a {:href "/create-deck"} "+ Create new deck"]]]))
+  (let [decks (vals (rum/react *decks))]
+    [:.page_home
+      [:h1 "Intro to Deckatron"]
+      (decks-list
+        (filter #(= "user-deckatron" (:user/id %)) decks))
+     
+      [:h1 "Your decks"]
+      (decks-list
+        (filter #(= core/user-id (:user/id %)) decks)
+        [:a.slide {:href "/create-deck"}
+          [:.slide-inner
+            [:.slide-text "+ Create new deck"]]])
+     
+      [:h1 "Other people’s decks"]
+      (decks-list (remove #(#{core/user-id "user-deckatron"} (:user/id %)) decks))]))
 
 
 (defn refresh! []

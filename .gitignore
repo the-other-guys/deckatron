@@ -7,4 +7,5 @@ pom.xml
 pom.xml.asc
 .idea
 *.iml
-.deckatron
+.deckatron/decks/**
+!.deckatron/decks/deck-welcome.edn

@@ -106,13 +106,13 @@
 
 
 (defn ensure-userid [handler]
-  (fn [req] ; TODO set a single path for all paths?
-    (let [user-id (or (get-in req [:cookies "user/id" :value])
+  (fn [req]
+    (let [user-id (or (get-in req [:cookies "user-id" :value])
                       (u/ssid "user-"))]
           (-> req
               (assoc :user/id user-id)
               (handler)
-              (assoc-in [:cookies "user/id"] {:value   user-id
+              (assoc-in [:cookies "user-id"] {:value   user-id
                                               :max-age (* 10 365 24 60 60)})))))
 
 
