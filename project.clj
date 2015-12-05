@@ -11,8 +11,8 @@
   ]
 
   :plugins [
-    [lein-cljsbuild "1.1.1"]
-    [lein-figwheel  "0.5.0-2"]
+    [lein-cljsbuild       "1.1.1"]
+    [tonsky/lein-figwheel "0.5.0-4"]
   ]
 
   :aliases      { "package"   ["do"
