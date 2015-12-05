@@ -160,6 +160,11 @@
 ;                                  {:text "world", :e/types #{:em}}]})))
 
 
+(deftest test-parse-inline-img
+  (is (= (parse "![kfc gif](http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif)\n\n")
+         [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:image}
+                                                   :e/href "http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif"}]}]}])))
+
 (deftest test-parse-url
   (is (= (parse "[key note](https://www.youtube.com/watch?v=FihU5JxmnBg)\n\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:link}
