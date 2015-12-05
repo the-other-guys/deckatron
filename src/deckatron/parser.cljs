@@ -6,7 +6,8 @@
 (enable-console-print!)
 
 
-(def ^:private SLIDES-SEPARATOR #"---\n")
+(def ^:private SLIDES-SEPARATOR #"===\n")
+(def ^:private COMMENTS-SEPARATOR #"---\n")
 
 (def ^:private parser
   ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L9
@@ -114,7 +115,16 @@
 
 
 (defn split-text-into-slides [t]
-  (remove clojure.string/blank? (clojure.string/split t SLIDES-SEPARATOR)))
+  (let [pages (->> (clojure.string/split t COMMENTS-SEPARATOR)
+                   (mapv #(clojure.string/split % SLIDES-SEPARATOR)))
+        f (fn [[c & ss]]
+            [{:s/type :comment :s/text c}
+             (mapv #(into {} {:s/type :slide :s/text %}) ss)])]
+    (->> pages
+         (map f)
+         flatten
+         (remove #(clojure.string/blank? (:s/text %)))
+         vec)))
 
 
 ;; TESTS
@@ -271,7 +281,15 @@
 ;  )
 
 (deftest test-split-text-into-slides
-  (is (= (split-text-into-slides "---\nslide1line1\nlide1line2\n---\nslide2line1\n")
-         '("slide1line1\nlide1line2\n" "slide2line1\n"))))
+  (is (= (split-text-into-slides (str "---\n" "comment1 line1\ncomment1 line2\n"
+                                      "===\n" "slide1 line1\nslide1 line2\n"
+                                      "---\n" "comment2 line1\ncomment2 line2\n"
+                                      "===\n" "slide2 line1\nslide2 line2\n"
+                                      "===\n" "slide3 line1\nslide3 line2\n"))
+         [{:s/type :comment :s/text "comment1 line1\ncomment1 line2\n"}
+          {:s/type :slide :s/text "slide1 line1\nslide1 line2\n"}
+          {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
+          {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
+          {:s/type :slide :s/text "slide3 line1\nslide3 line2\n"}])))
 
 (run-tests)
