@@ -105,6 +105,32 @@
 (parse "* one one\n* two two\n\n")
 [{:p/type :list, :elements [[{:text " one one", :e/types #{}}] [{:text " two two", :e/types #{}}]]}]
 
+
+(deftest test-grammar
+  (is (= (vec (parser "hello world\n=\n\n"))
+         [[:Header "hello" " " "world" [:h1 "="]]]))
+  (is (= (vec (parser "hello world\n-\n\n"))
+         [[:Header "hello" " " "world" [:h2 "-"]]]))
+  (is (= (vec (parser "* first line\n* second line\n\n"))
+         [[:List [:Listline " " "first" " " "line"] [:Listline " " "second" " " "line"]]])))
+
+
+(deftest test-reduce-spans
+  (is (= (reduce-spans [])
+         []))
+  (is (= (reduce-spans [{:text "a", :e/types #{}}])
+         [{:text "a", :e/types #{}}]))
+  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}])
+         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}]))
+  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}}])
+         [{:text "ab", :e/types #{}}]))
+  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}} {:text "a", :e/types #{}}])
+         [{:text "aba", :e/types #{}}]))
+  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])
+         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])))
+
+
+
 (deftest test-parse
   ;; list:
   (is (= (parse "* first line\n* second line\n\n")
