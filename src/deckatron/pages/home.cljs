@@ -12,7 +12,7 @@
 (defonce socket nil)
 
 
-(defonce *decks (atom {}))
+(defonce *decks (atom {})) ;; deck-id => Deck
 
 
 ;; (add-watch *decks ::log (fn [_ _ _ v] (println "Decks:" v)))

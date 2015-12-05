@@ -2,6 +2,7 @@
   (:require
     [clojure.string :as str]
     [rum.core :as rum]
+    [deckatron.core :as core]
     [deckatron.util :as u]
     [deckatron.parser :as parser]))
 
@@ -16,6 +17,17 @@
 
 
 (defonce *pending-content (atom nil))
+
+
+(defonce *mode (atom nil))
+
+
+(add-watch *deck ::default-mode
+  (fn [_ _ _ deck]
+    (if (= core/user-id (:user/id deck))
+      (reset! *mode "Edit")
+      (reset! *mode "Read"))
+    (remove-watch *deck ::default-mode)))
 
 
 (defn send! [message]
@@ -40,11 +52,46 @@
        1000))))
 
 
+(rum/defc menu-mode [text mode]
+  (let [selected? (= text mode)]
+    [:.menu-mode
+      { :class    (when selected? "menu-mode_selected")
+        :on-click (fn [_] (reset! *mode text)) }
+      text]))
+
+
+(rum/defc menu [deck mode]
+  (let [author? (= core/user-id (:user/id deck))
+        spectators (count (:deck/spectators deck))]
+    [:table.menu
+      [:tbody
+        [:tr
+          [:td.td-logo
+            [:a.logo { :href "/" } [:div "⟵"]]]
+          [:td.td-modes
+            [:.menu-modes
+              (when author?
+                (menu-mode "Edit" mode))
+              (menu-mode "Read" mode)
+              (menu-mode "Present" mode)]]
+          [:td.td-theme
+            (when author?
+              [:.menu-theme [:div "Theme" [:span {:style {"float" "right"}} "▾"]]])]
+          [:td.td-stats
+            [:.menu-stats
+              [:div
+                [:.menu-stats-bullet
+                  { :class (when (pos? spectators) "menu-stats-bullet_live") }]
+                  (str spectators " watching live")]]]]]]))
+
+  
 (rum/defc page < rum/reactive []
   (let [deck  (rum/react *deck)
+        mode  (rum/react *mode)
         value (or (rum/react *pending-content)
                   (:deck/content deck))]
     [:.page_deck
+      (menu deck mode)
       [:textarea.editor 
         { :value     value
           :on-change (fn [e]
