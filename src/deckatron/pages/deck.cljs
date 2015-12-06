@@ -67,7 +67,7 @@
 
 
 (rum/defc menu-mode [deck-id text mode]
-  [:.menu-mode
+  [:a.menu-mode
     (merge { :class (when (= text mode) "menu-mode_selected") }
            (core/turbolink (str "/deck/" deck-id "/" text) true))
     text])

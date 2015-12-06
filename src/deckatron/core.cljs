@@ -40,7 +40,10 @@
 
 (defn turbolink [url & [switch?]]
   { :href url
-    :on-click (fn [e] (if switch? (switch! url e) (go! url e))) })
+    :on-click (fn [e]
+                (when (and (not (.-metaKey e))
+                           (not (.-ctrlKey e)))
+                  ((if switch? switch! go!) url e))) })
 
 
 (def aspect (/ 16 9))

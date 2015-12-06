@@ -3,8 +3,10 @@ html, body { height: 100%; margin: 0; padding: 0; }
 
 body, button, input, textarea { font-family: 'Slabo 27px', serif; }
 textarea { font-size: inherit; }
+a { text-decoration: none; color: inherit; }
 
 body.err { border-top: 2px solid #C33; }
+
 
 
 .menu { width: 100%; position: fixed; top: 0; left: 0; }
@@ -16,7 +18,7 @@ body.err { border-top: 2px solid #C33; }
 .menu td { padding: 10px; text-align: center; white-space: nowrap; }
 
 .td-logo { width: 170px; }
-.logo { width: 140px; height: 60px; line-height: 46px; text-decoration: none; font-size: 46px; color: inherit; margin-left: 10px; }
+.logo { width: 140px; height: 60px; line-height: 46px; font-size: 46px; margin-left: 10px; }
 
 .td-modes { width: 50%; }
 .menu-mode { width: 100px; display: inline-block; border-radius: 0; border-left-width: 1px; border-right-width: 1px; position: relative; cursor: pointer; }

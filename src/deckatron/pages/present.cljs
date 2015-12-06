@@ -46,11 +46,6 @@
     (fn [state] 
       (let [[*deck] (:rum/args state)]
         (swap! *deck assoc :presenter-slide 0))
-      state)
-    :will-unmount
-    (fn [state] 
-      (let [[*deck] (:rum/args state)]
-        (swap! *deck dissoc :presenter-slide))
       state) })
 
 
