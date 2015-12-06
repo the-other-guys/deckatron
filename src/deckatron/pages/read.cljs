@@ -18,5 +18,5 @@
       [:.slides
         { :style { :width  (str width "px")
                    :font-size (str (u/width->font-size width) "px") } }
-        (for [slide (core/slides (:deck/content deck))]
+        (for [slide (core/->slides-and-notes (:deck/content deck))]
           (core/slide slide))]]))

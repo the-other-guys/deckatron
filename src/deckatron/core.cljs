@@ -67,13 +67,18 @@
 (defmulti stop-page! (fn [path next-path] (first path)))
 
 
-(defn slides [txt]
+(defn- ->slides [txt]
   (let [pages (->> txt
                    p/split-text-into-slides
                    (mapv p/parse))]
     (println (str "pages:" pages))
     pages))
 
+(defn ->slides-only [txt]
+  (-> txt ->slides (filter #(= :slide (:s/type %)))))
+
+(defn ->slides-and-notes [txt]
+  (->slides txt))
 
 (defn slide [s]
    (layouts/slide->layout s))

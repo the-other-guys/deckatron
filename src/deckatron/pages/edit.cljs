@@ -32,5 +32,5 @@
         { :style { :width  (str width "px")
                    :height (str height "px")
                    :font-size (str (u/width->font-size width) "px") } }
-        (for [slide (core/slides content)]
+        (for [slide (core/->slides-and-notes content)]
           (core/slide slide))]]))
