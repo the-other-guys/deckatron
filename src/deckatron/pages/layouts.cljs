@@ -4,24 +4,24 @@
     [clojure.string :as str]))
 
 (rum/defc default-layout [slide]
-  [:.slide
-   [:.slide-inner
-    [:.slide-text (str/trim (:s/text slide))]]])
+    [:.slide
+     [:.slide-inner
+      [:.slide-text (str/join slide)]]])
 
 (rum/defc head-only-layout [slide]
-  (let [t (-> slide :s/paragraphs first :p/type)
-        e (-> slide :s/paragraphs first :p/lines first :l/elements first)]
+  (let [t (-> slide first :p/type)
+        e (-> slide first :p/lines first :l/elements first :e/text)]
     [:.slide
      [:.slide-inner
       [:.slide-text
-       [t (str "1H: " (:e/text e))]]]]))
+       [t e]]]]))
 
 
 (rum/defc two-headed-centered-layout [slide]
-  (let [t1 (-> slide :s/paragraphs first :p/type)
-        t2 (-> slide :s/paragraphs second :p/type)
-        e1 (-> slide :s/paragraphs first :p/lines first :l/elements first)
-        e2 (-> slide :s/paragraphs second :p/lines first :l/elements first)]
+  (let [t1 (-> slide first :p/type)
+        t2 (-> slide second :p/type)
+        e1 (-> slide first :p/lines first :l/elements first)
+        e2 (-> slide second :p/lines first :l/elements first)]
     [:.slide
      [:.slide-inner
       [:.slide-text
@@ -43,8 +43,8 @@
 
 
 (defn slide->layout [slide]
-;;   (print (str "slide: " slide))
-  (let [key    (mapv :p/type (:s/paragraphs slide))
+;   (print (str "slide: " slide))
+  (let [key    (mapv :p/type slide)
         layout (get LAYOUTS key default-layout)]
-;;     (print (str "layout key: " key))
+;     (print (str "layout key: " layout))
     (layout slide)))

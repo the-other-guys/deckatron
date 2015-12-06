@@ -64,18 +64,12 @@
 
 
 (defn slides [txt]
-  (str/split txt #"(?:---|===)")
-  #_(let [pages (->> txt
+  (let [pages (->> txt
                    p/split-text-into-slides
                    (mapv p/parse))]
-    (println (str "pages:" (prn-str pages)))
+;    (println (str "pages:" (prn-str pages)))
     pages))
 
 
-;; (defn slide [s]
-;;   (layouts/slide->layout s))
-
-(rum/defc slide [slide]
-  [:.slide
-    [:.slide-inner
-      [:.slide-text (str/trim slide)]]])
+(defn slide [s]
+   (layouts/slide->layout s))
