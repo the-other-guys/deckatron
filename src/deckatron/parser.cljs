@@ -262,6 +262,7 @@
   (is (= (parse (str "- foo *bar baz*\n"
                      "- foo __bar baz__\n\n"
                      "- foo -bar baz-\n"
+                     "- foo [bar baz](http://nasa.gov.com/)\n"
                      "- foo `bar baz`\n\n"))
          [{:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:em}}]}
@@ -269,6 +270,8 @@
                                                             {:e/text "bar baz", :e/types #{:strong}}]}]}
           {:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strike}}]}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
+                                                            {:e/text "bar baz", :e/href "http://nasa.gov.com/", :e/types #{:link}}]}
                                               {:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:code}}]}]}])))
 
