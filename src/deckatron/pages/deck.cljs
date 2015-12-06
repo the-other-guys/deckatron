@@ -61,11 +61,6 @@
        sync-interval))))
 
 
-(defn can-spectate? [deck]
-  (and (:presenter-slide deck)
-       (contains? (:deck/spectators deck) (:user/id deck))))
-
-
 (rum/defc menu-mode [deck-id text mode]
   [:a.menu-mode
     (merge { :class (when (= text mode) "menu-mode_selected") }
@@ -89,7 +84,7 @@
               (menu-mode deck-id "Read" mode)
               (if author?
                 (menu-mode deck-id "Present" mode)
-                (when (can-spectate? deck)
+                (when (core/presenting? deck)
                   (menu-mode deck-id "Spectate" mode)))]]
           [:td.td-theme
             (when author?
@@ -138,7 +133,7 @@
         [false nil]        (switch! "Read")
         [false "Present"]  (switch! "Spectate")
         [false "Edit"]     (switch! "Read")
-        [false "Spectate"] (when-not (can-spectate? deck)
+        [false "Spectate"] (when-not (core/presenting? deck)
                              (switch! "Read"))
         nil))))
 

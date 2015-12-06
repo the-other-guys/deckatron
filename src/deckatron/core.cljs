@@ -7,8 +7,6 @@
     [deckatron.pages.layouts :as layouts]))
 
 
-(def user-deckatron "user-deckatron")
-
 (enable-console-print!)
 
 
@@ -79,3 +77,8 @@
 
 (defn slide [s]
    (layouts/slide->layout s))
+
+
+(defn presenting? [deck]
+  (and (:presenter-slide deck)
+       (contains? (:deck/spectators deck) (:user/id deck))))
