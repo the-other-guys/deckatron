@@ -2,7 +2,9 @@
   (:require
     ;[deckatron.app :as app]
     [rum.core :as rum]
-    [clojure.string :as str]))
+    [clojure.string :as str]
+    [deckatron.parser :as p]
+    [deckatron.pages.layouts :as L]))
 
 
 (def user-deckatron "user-deckatron")
@@ -57,11 +59,18 @@
 (js/window.onresize)
 
 
-(defn slides [content]
-  (str/split content #"(?:---|===)"))
+(defn slides [txt]
+  (let [pages (->> txt
+                   p/split-text-into-slides
+                   (mapv p/parse-slide))]
+    (println (str "pages:" (prn-str pages)))
+    pages))
 
 
-(rum/defc slide [slide]
-  [:.slide
-    [:.slide-inner
-      [:.slide-text (str/trim slide)]]])
+(defn slide [s]
+  (L/slide->layout s))
+
+;(rum/defc slide [slide]
+;  [:.slide
+;    [:.slide-inner
+;      [:.slide-text (str/trim (:s/text slide))]]])

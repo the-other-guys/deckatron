@@ -73,7 +73,7 @@
   (cond
     (set? delta) (clojure.set/union o delta)
     (map? delta) (reduce-kv (fn [o k v]
-                              (if (contains? o k)
+                              (if (and (contains? o k) (associative? v))
                                 (update o k patch-add v)
                                 (assoc o k v))) o delta)
    :else (throw (ex-info "Unsupported container: " delta))))
