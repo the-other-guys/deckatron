@@ -61,29 +61,6 @@
 (defn- ->code-paragraph [type language elements]
   {:p/type type :p/language language :p/lines elements})
 
-(defn- reduce-spans [ss]
-  (let [f (fn [m1 m2]
-            (update m1 :text str (:text m2)))
-        by-types (partition-by :e/types ss)]
-    (mapv #(reduce f %) by-types)))
-
-(defn- parse-list-line [line]
-  (->> (rest line)
-;       (map parse-span)
-       reduce-spans))
-
-(defn- parse-list [block]
-  "'* one\n* two\n\n'
-  ==>
-  [:List
-   [:Listline \" \" \"one\"]
-   [:Listline \" \" \"two\"]]"
-  (let [lines (mapv parse-list-line (rest block))]
-    (->paragraph :list lines)))
-
-
-(defn- parse-ordered-list [block]
-  (assoc (parse-list block) :p/type :ordered-list))
 
 (defn- span? [s]
     (if (vector? s)
@@ -289,22 +266,6 @@
                            :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
                                      {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
 
-
-
-;(deftest test-reduce-spans
-;  (is (= (reduce-spans [])
-;         []))
-;  (is (= (reduce-spans [{:text "a", :e/types #{}}])
-;         [{:text "a", :e/types #{}}]))
-;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}])
-;         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}}]))
-;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}}])
-;         [{:text "ab", :e/types #{}}]))
-;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{}} {:text "a", :e/types #{}}])
-;         [{:text "aba", :e/types #{}}]))
-;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])
-;         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])))
-;
 
 (deftest test-split-text-into-slides
   (is (= (split-text-into-slides (str "---\n" "comment1 line1\ncomment1 line2\n"
