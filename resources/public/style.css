@@ -84,7 +84,7 @@ body.err { border-top: 2px solid #C33; }
 
 .authors-decks { background: #EEE; border-top: 2px solid #000; border-bottom: 2px solid #000; }
 
-.deck-slide_deck-intro { font-size: 10.5px; }
+.deck-slide_deck-welcome { font-size: 10.5px; }
 .deck-slide_deck-cheatsheet { font-size: 7.5px; }
 
 .deck_new .slide { border-style: dashed; }
