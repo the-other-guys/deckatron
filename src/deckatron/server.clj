@@ -12,11 +12,16 @@
 
 ; # Types (please, keep up to date with current implementation)
 ;
-; Deck {:deck/id         <id-string>
-;       :deck/content    <string>
-;       :user/id         <id-string>
-;       :deck/viewed-by  #{<user-ids}
-;       :deck/spectators #{<user-ids}
+; Example ids:  "deck-blgizvpbxilgqy"
+;               "user-blggft0clssqkt"
+;
+;
+; Deck {:deck/id          <deck-id>
+;       :deck/forked-from <deck-id>
+;       :deck/content     <string>
+;       :user/id          <user-id>
+;       :deck/viewed-by   #{<user-ids>}
+;       :deck/spectators  #{<user-ids>}
 ; }
 
 
