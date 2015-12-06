@@ -9,17 +9,37 @@
     [:.slide-text (str/trim (:s/text slide))]]])
 
 (rum/defc head-only-layout [slide]
-  (let [e (-> slide :s/paragraphs first :p/lines first :l/elements first)]
+  (let [t (-> slide :s/paragraphs first :p/type)
+        e (-> slide :s/paragraphs first :p/lines first :l/elements first)]
     [:.slide
      [:.slide-inner
-      [:.slide-text (str "I am head-only layout:\n" (:e/text e))]]]))
+      [:.slide-text
+       [tag (str "I am head-only layout:\n" (:e/text e))]]]]))
+
+
+(rum/defc two-headed-centered-layout [slide]
+  (let [t1 (-> slide :s/paragraphs first :p/type)
+        t2 (-> slide :s/paragraphs second :p/type)
+        e1 (-> slide :s/paragraphs first :p/lines first :l/elements first)
+        e2 (-> slide :s/paragraphs second :p/lines first :l/elements first)]
+    [:.slide
+     [:.slide-inner
+      [:.slide-text
+       [t1 (str "I am two-headed layout:\n" (:e/text e1))]
+       [t2 (:e/text e2)]]]]))
 
 
 (def LAYOUTS
   {[:h1] head-only-layout
    [:h2] head-only-layout
    [:h3] head-only-layout
-   [:h4] head-only-layout})
+   [:h4] head-only-layout
+   [:h1 :h2] two-headed-centered-layout
+   [:h1 :h3] two-headed-centered-layout
+   [:h1 :h4] two-headed-centered-layout
+   [:h2 :h1] two-headed-centered-layout
+   [:h2 :h3] two-headed-centered-layout
+   [:h2 :h4] two-headed-centered-layout})
 
 
 (defn slide->layout [slide]
