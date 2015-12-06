@@ -17,10 +17,10 @@
     Header = Headermarker Whitespace+ Span EOL
     <Headermarker> = ('#' | '##')
     List = Listline+ Blankline+
-    Listline = Listmarker Whitespace* Span EOL
+    Listline = Listmarker Whitespace+ Span EOL
     <Listmarker> = <'+' | '*' | '-'>
     Ordered = Orderedline+ Blankline+
-    Orderedline = Orderedmarker Whitespace* Span EOL
+    Orderedline = Orderedmarker Whitespace+ Span EOL
     <Orderedmarker> = <#'[0-9]+\\.'>
     Code = Codeline+ Blankline+
     Codeline = <Space Space Space Space> Span EOL
@@ -110,7 +110,7 @@
   [{:l/elements (reduce-elements elms [])}])
 
 (defn- ordered-lines [elms]
-  (mapcat #(reduce-res (vec (rest %))) elms))
+  (mapcat #(reduce-res (vec (rest (rest %)))) elms))
 
 (defn- reduce-block [b]
     (case (first b)
@@ -197,13 +197,13 @@
                        "2. foo __bar baz__\n\n"
                        "1. foo ~bar baz~\n"
                        "2. foo `bar baz`\n\n"))
-           [{:p/type :ordered-list, :p/lines [{:l/elements [{:e/text " foo ", :e/types #{}}
+           [{:p/type :ordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strong}}]}
-                                              {:l/elements [{:e/text " foo ", :e/types #{}}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strong}}]}]}
-            {:p/type :ordered-list, :p/lines [{:l/elements [{:e/text " foo ", :e/types #{}}
+            {:p/type :ordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strike}}]}
-                                              {:l/elements [{:e/text " foo ", :e/types #{}}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:code}}]}]}])))
 
 (deftest test-parse-2-unordered-lists-w-modified-text
@@ -211,13 +211,13 @@
                      "- foo __bar baz__\n\n"
                      "- foo -bar baz-\n"
                      "- foo `bar baz`\n\n"))
-         [{:p/type :unordered-list, :p/lines [{:l/elements [{:e/text " foo ", :e/types #{}}
+         [{:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:em}}]}
-                                              {:l/elements [{:e/text " foo ", :e/types #{}}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strong}}]}]}
-          {:p/type :unordered-list, :p/lines [{:l/elements [{:e/text " foo ", :e/types #{}}
+          {:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strike}}]}
-                                              {:l/elements [{:e/text " foo ", :e/types #{}}
+                                              {:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:code}}]}]}])))
 
 ;(deftest test-parse-blockquote
