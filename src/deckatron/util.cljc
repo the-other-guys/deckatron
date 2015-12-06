@@ -57,8 +57,7 @@
 (defn diff [a b]
   (let [[a b _] (clojure.data/diff a b)]
     [a b]))
-   
-   
+
 (defn- patch-delete [o delta]
   (cond
     (set? delta) (clojure.set/difference o delta)
@@ -66,17 +65,17 @@
                               (if (= (get o k) v)
                                 (dissoc o k)
                                 (update o k patch-delete v))) o delta)
-    :else (throw (ex-info "Unsupported container: " delta))))
+    :else delta))
 
 
 (defn- patch-add [o delta]
   (cond
     (set? delta) (clojure.set/union o delta)
     (map? delta) (reduce-kv (fn [o k v]
-                              (if (and (contains? o k) (associative? v))
+                              (if (contains? o k)
                                 (update o k patch-add v)
                                 (assoc o k v))) o delta)
-   :else (throw (ex-info "Unsupported container: " delta))))
+    :else delta))
 
 
 (defn patch [o diff]

@@ -32,7 +32,7 @@
 ; Object -> #{ {:user-id <id-string> -- used for :deck/spectacors calculation
 ;               :chan Channel        -- used for callbacks (can be replaced with (fn [msg] (send-obj! ... msg))
 ;              }}
-(def *topic->subscribers (atom {}))
+(defonce *topic->subscribers (atom {}))
 
 (defn listen [topic chan user-id]
   (swap! *topic->subscribers update topic
@@ -48,9 +48,11 @@
 
 (defn broadcast!
   ([topic message]             (broadcast! topic message nil))
-  ([topic message ignore-chan] (doseq [s (get (deref *topic->subscribers) topic)
-                                       :when (not= ignore-chan (:chan s))]
-                                 (send-obj! (:chan s) message))))
+  ([topic message ignore-chan]
+    (println "broadcasting to" topic ":" message)
+    (doseq [s (get (deref *topic->subscribers) topic)
+            :when (not= ignore-chan (:chan s))]
+      (send-obj! (:chan s) message))))
 
 (defn update-counters-and-broadcast [deck-id user-id]
   (->>
@@ -58,9 +60,8 @@
       (fn [deck]
         (-> deck
           (update :deck/viewed-by  #(conj (or % #{}) user-id))
-          (assoc  :deck/spectators (->> (get (deref *topic->subscribers) deck-id)
+          (assoc  :deck/spectators (->> (get @*topic->subscribers deck-id)
                                      (map :user-id)
-                                     distinct
                                      set)))))
     (new-patch-message deck-id)
     (broadcast! deck-id)))
@@ -71,7 +72,6 @@
 
   (GET "/" []
     (response/resource-response "public/index.html"))
-
 
   ;; Deck page
 
@@ -156,7 +156,7 @@
               ; TODO consider abstracting away storage + broadcasting behind a single thing
               (storage/patch-deck! deck-id patch)
               (broadcast! deck-id patch-message chan) ; don't send back to self (chan)
-              (broadcast! :decks  patch-message patch)))))))
+              (broadcast! :decks  patch-message chan)))))))
 
   (route/resources "/" {:root "public"}))
 
@@ -165,11 +165,12 @@
   (fn [req]
     (let [user-id (or (get-in req [:cookies "user-id" :value])
                       (u/ssid "user-"))]
-          (-> req
-              (assoc :user/id user-id)
-              (handler)
-              (assoc-in [:cookies "user-id"] {:value   user-id
-                                              :max-age (* 10 365 24 60 60)})))))
+      (-> req
+          (assoc :user/id user-id)
+          (handler)
+          (assoc-in [:cookies "user-id"] {:value   user-id
+                                          :path    "/"
+                                          :max-age (* 10 365 24 60 60)})))))
 
 
 (def app (-> routes ensure-userid wrap-cookies))

@@ -56,7 +56,7 @@
 
 (rum/defc present-page < rum/reactive
                          set-starting-slide
-  [*deck socket]
+  [*deck]
   (let [deck   (rum/react *deck)
         width  (rum/react core/*window-width)
         height (rum/react core/*window-height)
@@ -70,4 +70,22 @@
                  :height       height} }
       (when-let [content (:deck/content deck)]
         (slides (core/slides content) (rum/cursor *deck [:presenter-slide])))]))
+
+
+(rum/defc spectate-page < rum/reactive
+  [*deck]
+  (let [deck   (rum/react *deck)
+        width  (rum/react core/*window-width)
+        height (rum/react core/*window-height)
+        max-w  (* height core/aspect)
+        w      (min width max-w)
+        h      (/ w core/aspect)]
+    [:.page_deck-present
+      { :style { :padding-top  (-> (- height h) (/ 2) (str "px"))
+                 :padding-left (-> (- width w) (/ 2) (str "px"))
+                 :font-size    (str (u/width->font-size w false) "px")
+                 :height       height} }
+      (when-let [content (:deck/content deck)]
+        [:.slides
+          (core/slide (nth (core/slides content) (:presenter-slide deck)))])]))
 

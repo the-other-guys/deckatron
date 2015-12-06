@@ -38,17 +38,23 @@
                       (core/fake-navigate-url (core/->deck-href deck mode) nil))]
     (cond
       (and not-author? (= mode "Edit"))
-      (redirect "Read")
+        (redirect "Read")
       (and not-author? (clojure.string/blank? mode))
-      (redirect "Read")
+        (redirect "Read")
       (and author? (clojure.string/blank? mode))
-      (redirect "Edit"))))
+        (redirect "Edit")
+      (and author? (= mode "Spectate"))
+        (redirect "Present")
+      (and not-author? (= mode "Present"))
+        (redirect "Spectate"))))
+
 
 (add-watch *pending-deck ::default-mode
   (fn [_ _ old deck]
     (when (nil? old) ;; first load
       (validate-and-enforce-mode! deck (core/->mode)))
     (remove-watch *pending-deck ::default-mode)))
+
 
 (def sync-interval 1000)
 
@@ -63,7 +69,7 @@
 (add-watch *pending-deck ::sync
   (fn [_ _ _ new]
     (when (not= new @*server-deck)
-      (println "Got delta" (u/diff @*server-deck new))
+;;       (println "Got delta" (u/diff @*server-deck new))
       (js/setTimeout
         (fn []
           ;; When it’s time to sync, we check that we still
@@ -91,7 +97,7 @@
 
 (rum/defc menu [deck mode]
   (let [author? (core/author? deck)
-        spectators (count (:deck/spectators deck))]
+        spectators (count (disj (:deck/spectators deck) core/user-id))]
     [:table.menu
       [:tbody
         [:tr
@@ -104,16 +110,22 @@
               (when author?
                 (menu-mode "Edit" mode))
               (menu-mode "Read" mode)
-              (menu-mode "Present" mode)]]
+              (if author?
+                (menu-mode "Present" mode)
+                (menu-mode "Spectate" mode))]]
           [:td.td-theme
             (when author?
               [:.menu-theme [:div "Theme" [:span {:style {"float" "right"}} "▾"]]])]
           [:td.td-stats
             [:.menu-stats
-              [:div
-                [:.menu-stats-bullet
-                  { :class (when (pos? spectators) "menu-stats-bullet_live") }]
-                  (str spectators " watching live")]]]]]]))
+                (if (pos? spectators)
+                  [:div
+                    { :title (pr-str (:deck/spectators deck)) }
+                    [:.menu-stats-bullet.menu-stats-bullet_live]
+                    (str spectators " watching live")]
+                  [:div
+                    (str (count (:deck/viewed-by deck)) " total views")])]]]]]))
+                  
 
 (rum/defc page < rum/reactive []
   (let [deck  (rum/react *pending-deck)
@@ -136,17 +148,20 @@
     [:.page_deck
       (menu (rum/react *pending-deck) mode)
       (case mode
-        "Edit"    (edit/edit-page *pending-deck)
-        "Read"    (read/read-page *pending-deck)
-        "Present" (present/present-page *pending-deck socket))]))
+        "Edit"     (edit/edit-page *pending-deck)
+        "Read"     (read/read-page *pending-deck)
+        "Present"  (present/present-page *pending-deck)
+        "Spectate" (present/spectate-page *pending-deck))]))
 
 
 ;; When patch comes from server
 (defn on-server-push [patch]
+  (println "Server push:" patch)
   ;; Calculating what changes have we accumulated up to this point
   (let [delta (u/diff @*server-deck @*pending-deck)]
     ;; We apply it to confirmed deck first
     (swap! *server-deck u/patch patch)
+;;     (println "New state" @*server-deck)
     ;; Take new server-deck and apply local changes to it
     (reset! *pending-deck (u/patch @*server-deck delta))))
 
