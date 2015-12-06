@@ -18,9 +18,8 @@
 
 (rum/defc deck [deck]
   [:.deck
-    [:a.slide (core/turbolink (str "/deck/" (:deck/id deck)))
-      [:.slide-inner
-        [:.slide-text (:deck/id deck)]]]
+    [:a (core/turbolink (str "/deck/" (:deck/id deck)))
+     (core/slide (-> deck :deck/content core/->first-slide-only))]
     (let [spectators (count (:deck/spectators deck))]
       (if (core/presenting? deck)
         [:.deck-subtext.deck-subtext_spectators spectators " watching now"]

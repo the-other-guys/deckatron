@@ -83,6 +83,12 @@
 (defn slide [s]
    (layouts/render-slide s))
 
+(defn ->first-slide-only [txt]
+  (->> txt
+    p/split-text-into-slides
+    (filter #(= :slide (:s/type %)))
+    first
+    p/parse))
 
 (defn presenting? [deck]
   (and (:presenter-slide deck)
