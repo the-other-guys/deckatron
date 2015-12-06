@@ -15,7 +15,7 @@
   (insta/parser
     "<Blocks> = (EOL | Paragraph | Header | List | Ordered | Code)+
     Header = Headermarker Whitespace+ Span EOL
-    <Headermarker> = ('#' | '##')
+    <Headermarker> = ('#' | '##' | '###' | '####')
     List = Listline+ Blankline+
     Listline = Listmarker Whitespace+ Span EOL
     <Listmarker> = <'+' | '*' | '-'>
@@ -112,12 +112,20 @@
 (defn- ordered-lines [elms]
   (mapcat #(reduce-res (vec (rest (rest %)))) elms))
 
+(defn- header-key [q]
+  (case q
+        "#" :h1
+        "##" :h2
+        "###" :h3
+        "####" :h4
+        :h5))
+
 (defn- reduce-block [b]
     (case (first b)
       :Span (->paragraph :text (reduce-res b))
       :Ordered (->paragraph :ordered-list (ordered-lines (rest b)))
       :List (->paragraph :unordered-list (ordered-lines (rest b)))
-      :Header (->paragraph (if (= (second b) "#") :h1 :h2) (reduce-res (nth b 3)))
+      :Header (->paragraph (header-key (second b)) (reduce-res (nth b 3)))
       :Paragraph (->paragraph :text (reduce-res (concat-samelevel-spans (vec (rest b)))))))
 
 (defn- reduce-blocks [blocks]
@@ -171,6 +179,14 @@
 (deftest test-parse-heading-2
   (is (= (parse "## foo + bar baz_?\n\n")
          [{:p/type :h2, :p/lines [{:l/elements [{:e/text "foo + bar baz_?", :e/types #{}}]}]}])))
+
+(deftest test-parse-heading-3
+  (is (= (parse "### just foo\n\n")
+         [{:p/type :h3, :p/lines [{:l/elements [{:e/text "just foo", :e/types #{}}]}]}])))
+
+(deftest test-parse-heading-4
+  (is (= (parse "#### just foo\n\n")
+         [{:p/type :h4, :p/lines [{:l/elements [{:e/text "just foo", :e/types #{}}]}]}])))
 
 (deftest test-parse-block-w-plain-text
   (is (= (parse "foo *bar!\n")
@@ -259,25 +275,6 @@
 ;  (is (= (reduce-spans [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])
 ;         [{:text "a", :e/types #{}} {:text "b", :e/types #{:em}} {:text "a", :e/types #{}}])))
 ;
-
-;(deftest test-parse
-;  ;; list:
-;  (is (= (parse "first line\n=\n\n")
-;         [{:p/type :h1, :elements [{:text "first line", :e/types #{}}]}]))
-;  ;; list:
-;  (is (= (parse "* first line\n* second line\n\n")
-;         [{:p/type :list, :elements [[{:text " first line", :e/types #{}}]
-;                                     [{:text " second line", :e/types #{}}]]}]))
-;  ;; list line with inline md:
-;  (is (= (parse "* line *with* emph\n\n")
-;         [{:p/type :list, :elements [[{:text " line ", :e/types #{}}
-;                                      {:text "with", :e/types #{:em}}
-;                                      {:text " emph", :e/types #{}}]]}]))
-;  ;; ordered list:
-;  (is (= (parse "1. first line\n2. second line\n\n")
-;         [{:p/type :ordered-list, :elements [[{:text "first line", :e/types #{}}]
-;                                             [{:text "second line", :e/types #{}}]]}]))
-;  )
 
 (deftest test-split-text-into-slides
   (is (= (split-text-into-slides (str "---\n" "comment1 line1\ncomment1 line2\n"
