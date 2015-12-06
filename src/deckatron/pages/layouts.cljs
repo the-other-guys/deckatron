@@ -54,9 +54,9 @@
   (map parse-p slide))
 
 (rum/defc notes-layout [ast]
-  [:.slide.note
-   [:.slide-inner
-    [:.slide-text (->html ast)]]])
+  [:.note
+    [:.note-inner
+      (->html ast)]])
 
 
 (rum/defc default-layout [slide]

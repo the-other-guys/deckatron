@@ -52,18 +52,19 @@ body.err { border-top: 2px solid #C33; }
 
 
 
-.slide { display: block; width: 40em; height: 22.5em; border: 0.3em solid black; margin: 2em; border-radius: 1.5em; white-space: pre-wrap; word-break: break-word; background: white; overflow: hidden; padding: 2em; text-align: left; }
+.slide, .note { display: block; width: 40em; height: 22.5em; margin: 2em; border-radius: 1.5em; white-space: pre-wrap; word-break: break-word; overflow: hidden; padding: 2em; text-align: left; vertical-align: top; }
 .slide a { text-decoration: underline; }
-.note { border: 0.3em; }
 
-.slide-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5em; }
+.note { height: auto; }
+
+.slide-inner, .note-inner { width: 100%; height: 100%; font-size: 2.5em; }
 .slide_43 { height: 30em; }
 
 
 .deck { display: inline-block; vertical-align: top; margin: 5px 10px; }
 .page_home .slide { border-width: 2px; margin: 0; }
-.deck-slide { position: relative; font-size: 7px; cursor: pointer; border: 4px solid white; border-radius: 1.9em; }
-.deck-slide:hover { top: -1px; }
+.deck-slide { position: relative; font-size: 7px; cursor: pointer; border: 4px solid white; border-radius: 1.9em; transition: 0.5s cubic-bezier(.1, .7, .1, 1); transition-property: transform; }
+.deck-slide:hover { transform: translateY(-5px); }
 
 .page_home { }
 
