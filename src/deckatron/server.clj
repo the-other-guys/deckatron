@@ -21,7 +21,6 @@
 
 
 (defn send-obj! [chan o]
-  (println ">>> sent:     " o)
   (httpkit/send! chan (u/obj->transit o)))
 
 (defn new-patch-message [deck-id patch]
@@ -29,28 +28,29 @@
    :patch   patch})
 
 ;; broadcasting
-(def *subject->subscribers (atom {})) ; Object -> #{ {:user-id <id-string> :chan Channel} }
 
-(defn listen [subject user-id chan]
-  (println "+++ listen:   " subject user-id)
-  (swap! *subject->subscribers update subject
+; Object -> #{ {:user-id <id-string> -- used for :deck/spectacors calculation
+;               :chan Channel        -- used for callbacks (can be replaced with (fn [msg] (send-obj! ... msg))
+;              }}
+(def *topic->subscribers (atom {}))
+
+(defn listen [topic user-id chan]
+  (swap! *topic->subscribers update topic
     #(conj (or % #{}) {:user-id user-id :chan chan})))
 
-(defn unlisten [subject user-id chan]
-  (println "--- unlisten: " subject user-id)
-  (swap! *subject->subscribers
+(defn unlisten [topic user-id chan]
+  (swap! *topic->subscribers
     (fn [m]
-      (let [new-chans (disj (get m subject) {:user-id user-id :chan chan})]
+      (let [new-chans (disj (get m topic) {:user-id user-id :chan chan})]
         (if (empty? new-chans)
-          (dissoc m subject)
-          (assoc  m subject new-chans))))))
+          (dissoc m topic)
+          (assoc  m topic new-chans))))))
 
 (defn broadcast!
-  ([subject message]             (broadcast! subject message nil))
-  ([subject message ignore-chan] (doseq [s (get (deref *subject->subscribers) subject)
-                                        :when (not= ignore-chan (:chan s))]
-                                   (println "!!! broadcast:" subject message)
-                                   (send-obj! (:chan s) message))))
+  ([topic message]             (broadcast! topic message nil))
+  ([topic message ignore-chan] (doseq [s (get (deref *topic->subscribers) topic)
+                                       :when (not= ignore-chan (:chan s))]
+                                 (send-obj! (:chan s) message))))
 
 (defn update-counters-and-broadcast [deck-id user-id]
   (->>
@@ -58,7 +58,7 @@
       (fn [deck]
         (-> deck
           (update :deck/viewed-by  #(conj (or % #{}) user-id))
-          (assoc  :deck/spectators (->> (get (deref *subject->subscribers) deck-id)
+          (assoc  :deck/spectators (->> (get (deref *topic->subscribers) deck-id)
                                      (map :user-id)
                                      distinct
                                      set)))))
