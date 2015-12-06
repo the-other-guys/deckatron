@@ -4,6 +4,9 @@ html, body { height: 100%; margin: 0; padding: 0; }
 body, button, input, textarea { font-family: 'Slabo 27px', serif; }
 textarea { font-size: inherit; }
 
+body.err { border-top: 2px solid #C33; }
+
+
 .menu { width: 100%; position: fixed; top: 0; left: 0; }
 
 .logo, .menu-modes, .menu-theme, .menu-stats { display: inline-block; height: 44px; line-height: 32px; border: 4px solid #FFF; border-radius: 10px; background: white; }
@@ -37,7 +40,9 @@ textarea { font-size: inherit; }
 .slide-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5em; }
 .slide_43 { height: 30em; }
 
+
 .page_home .slide { font-size: 5px; display: inline-block; }
+
 
 
 .page_deck-edit > .editor, 

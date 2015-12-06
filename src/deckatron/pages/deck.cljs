@@ -69,7 +69,7 @@
 (rum/defc menu-mode [deck-id text mode]
   [:.menu-mode
     (merge { :class (when (= text mode) "menu-mode_selected") }
-           (core/turbolink (str "/deck/" deck-id "/" text)))
+           (core/turbolink (str "/deck/" deck-id "/" text) true))
     text])
 
 
@@ -131,15 +131,15 @@
 (defn validate-mode! [deck mode]
   (when deck
     (let [author? (core/author? deck)
-          go!     #(core/go! (str "/deck/" (:deck/id deck) "/" %))]
+          switch! #(core/switch! (str "/deck/" (:deck/id deck) "/" %))]
       (case [author? mode]
-        [true  nil]        (go! "Edit")
-        [true  "Spectate"] (go! "Present")
-        [false nil]        (go! "Read")
-        [false "Present"]  (go! "Spectate")
-        [false "Edit"]     (go! "Read")
+        [true  nil]        (switch! "Edit")
+        [true  "Spectate"] (switch! "Present")
+        [false nil]        (switch! "Read")
+        [false "Present"]  (switch! "Spectate")
+        [false "Edit"]     (switch! "Read")
         [false "Spectate"] (when-not (can-spectate? deck)
-                             (go! "Read"))
+                             (switch! "Read"))
         nil))))
 
 

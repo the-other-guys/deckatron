@@ -18,7 +18,7 @@
 (def *last-path (atom nil))
 
 
-(defn ^:export refresh []
+(defn render []
   (let [old @*last-path
         new (parse-path js/window.location.pathname)]
     (when old
@@ -27,4 +27,8 @@
     (reset! *last-path new)))
 
 
-(set! js/window.onpopstate refresh)
+(defn ^:export refresh []
+  (set! js/document.body.className "")
+  (set! js/window.onerror #(set! js/document.body.className "err"))
+  (set! js/window.onpopstate render)
+  (render))

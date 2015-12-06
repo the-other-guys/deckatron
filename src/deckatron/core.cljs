@@ -29,9 +29,18 @@
     (go! href)))
 
 
-(defn turbolink [url]
+(defn switch!
+  ([href]
+    (js/history.replaceState nil nil href)
+    (js/window.onpopstate))
+  ([href e]
+    (.preventDefault e)
+    (switch! href)))
+
+
+(defn turbolink [url & [switch?]]
   { :href url
-    :on-click (fn [e] (go! url e)) })
+    :on-click (fn [e] (if switch? (switch! url e) (go! url e))) })
 
 
 (def aspect (/ 16 9))
