@@ -84,10 +84,10 @@
 
   ;; Deck page
 
-  (GET "/deck/:id" []
+  (GET "/deck/:deck-id" []
     (response/resource-response "public/index.html"))
 
-  (GET "/deck/:id/:mode" []
+  (GET "/deck/:deck-id/:mode" []
     (response/resource-response "public/index.html"))
   
   ;; redirect to /deck/:id page
@@ -99,9 +99,14 @@
        (println "Created" deck-id)
        { :status  302
          :headers {"Location" (str "/deck/" deck-id "/Edit")}}))
-  
-  
-  ;; on connect -> { :deck/id ..., :patch ... } (separate msg for each deck)
+
+  (GET "/fork-deck/:from-deck-id" [from-deck-id :as req]
+    (let [new-deck (storage/fork-deck! from-deck-id)]
+      {:status 302
+       :headers {"Location" (str "/deck/" (:deck/id new-deck) "/Edit")}}))
+
+
+    ;; on connect -> { :deck/id ..., :patch ... } (separate msg for each deck)
   ;; when deck changed by someone else -> { :deck/id ..., :patch ... }
 
   (GET "/api/decks" [:as req]
