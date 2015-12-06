@@ -9,3 +9,4 @@ pom.xml.asc
 *.iml
 .deckatron/decks/**
 !.deckatron/decks/deck-welcome.edn
+!.deckatron/decks/deck-cheatsheet.edn
