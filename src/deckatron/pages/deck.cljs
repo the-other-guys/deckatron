@@ -97,7 +97,9 @@
       [:tbody
         [:tr
           [:td.td-logo
-            [:a.logo { :href "/" } [:div "⟵"]]]
+            [:a.logo {:href "/"
+                      :on-click (partial core/fake-navigate-url "/")}
+             [:div "⟵"]]]
           [:td.td-modes
             [:.menu-modes
               (when author?
