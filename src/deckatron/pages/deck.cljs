@@ -61,11 +61,6 @@
        sync-interval))))
 
 
-(defn can-spectate? [deck]
-  (and (:presenter-slide deck)
-       (contains? (:deck/spectators deck) (:user/id deck))))
-
-
 (rum/defc menu-mode [deck-id text mode]
   [:a.menu-mode
     (merge { :class (when (= text mode) "menu-mode_selected") }
@@ -89,20 +84,27 @@
               (menu-mode deck-id "Read" mode)
               (if author?
                 (menu-mode deck-id "Present" mode)
-                (when (can-spectate? deck)
+                (when (core/presenting? deck)
                   (menu-mode deck-id "Spectate" mode)))]]
+         
           [:td.td-theme
             (when author?
               [:.menu-theme [:div "Theme" [:span {:style {"float" "right"}} "▾"]]])]
+         
+;;           [:td.td-fork
+;;             [:.menu-fork [:div "Fork this deck"]]]
+          
           [:td.td-stats
             [:.menu-stats
-                (if (pos? spectators)
-                  [:div
-                    { :title (pr-str (:deck/spectators deck)) }
-                    [:.menu-stats-bullet.menu-stats-bullet_live]
-                    (str spectators " watching live")]
-                  [:div
-                    (str (count (:deck/viewed-by deck)) " total views")])]]]]]))
+              [:div
+                [:.half
+                  (if (pos? spectators)
+                    (list
+                      [:.menu-stats-bullet.menu-stats-bullet_live]
+                      (str spectators " watching live"))
+                    (str (count (:deck/viewed-by deck)) " total views"))]
+                [:.half.fork
+                  [:a {:href (str "/fork-deck/" (:deck/id deck)) :target "_blank"} "Fork this deck"]]]]]]]]))
 
 
 (rum/defc deck-page < rum/reactive [mode]
@@ -138,7 +140,7 @@
         [false nil]        (switch! "Read")
         [false "Present"]  (switch! "Spectate")
         [false "Edit"]     (switch! "Read")
-        [false "Spectate"] (when-not (can-spectate? deck)
+        [false "Spectate"] (when-not (core/presenting? deck)
                              (switch! "Read"))
         nil))))
 

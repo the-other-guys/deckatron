@@ -90,3 +90,22 @@
 (defn width->font-size
   ([w] (width->font-size w true))
   ([w margin?] (-> w (/ (if margin? 440 400)) (* 10))))
+
+
+(defn which? [test coll]
+  (loop [i 0]
+    (if (>= i (count coll))
+      nil
+      (if (test (nth coll i))
+        i
+        (recur (inc i))))))
+  
+  
+(defn split [coll & preds]
+  (let [preds (concat preds [(constantly true)])]
+    (reduce
+      (fn [vecs el]
+        (let [i (which? #(% el) preds)]
+          (update vecs i conj el)))
+      (vec (repeat (count preds) [])) coll)))
+

@@ -34,9 +34,11 @@
 ;              }}
 (defonce *topic->subscribers (atom {}))
 
+
 (defn listen [topic chan user-id]
   (swap! *topic->subscribers update topic
     #(conj (or % #{}) {:user-id user-id :chan chan})))
+
 
 (defn unlisten [topic chan user-id]
   (swap! *topic->subscribers
@@ -46,25 +48,32 @@
           (dissoc m topic)
           (assoc  m topic new-chans))))))
 
+
 (defn broadcast!
   ([topic message]             (broadcast! topic message nil))
   ([topic message ignore-chan]
     (println "broadcasting to" topic ":" message)
-    (doseq [s (get (deref *topic->subscribers) topic)
+   
+    (doseq [s (get @*topic->subscribers topic)
             :when (not= ignore-chan (:chan s))]
+      (send-obj! (:chan s) message))
+   
+    (doseq [s (get @*topic->subscribers :decks)]
       (send-obj! (:chan s) message))))
 
+
 (defn update-counters-and-broadcast [deck-id user-id]
-  (->>
-    (storage/update-and-eject-diff! deck-id
-      (fn [deck]
-        (-> deck
-          (update :deck/viewed-by  #(conj (or % #{}) user-id))
-          (assoc  :deck/spectators (->> (get @*topic->subscribers deck-id)
-                                     (map :user-id)
-                                     set)))))
-    (new-patch-message deck-id)
-    (broadcast! deck-id)))
+  (let [patch (storage/update-and-eject-diff! deck-id
+                (fn [deck]
+                  (-> deck
+                    (update :deck/viewed-by  #(conj (or % #{}) user-id))
+                    (assoc  :deck/spectators (->> (get @*topic->subscribers deck-id)
+                                               (map :user-id)
+                                               set)))))
+        message (new-patch-message deck-id patch)]
+    (when (not= patch [nil nil])
+      (broadcast! deck-id message))))
+
 
 (defroutes routes
 
@@ -75,10 +84,10 @@
 
   ;; Deck page
 
-  (GET "/deck/:id" []
+  (GET "/deck/:deck-id" []
     (response/resource-response "public/index.html"))
 
-  (GET "/deck/:id/:mode" []
+  (GET "/deck/:deck-id/:mode" []
     (response/resource-response "public/index.html"))
   
   ;; redirect to /deck/:id page
@@ -90,9 +99,14 @@
        (println "Created" deck-id)
        { :status  302
          :headers {"Location" (str "/deck/" deck-id "/Edit")}}))
-  
-  
-  ;; on connect -> { :deck/id ..., :patch ... } (separate msg for each deck)
+
+  (GET "/fork-deck/:from-deck-id" [from-deck-id :as req]
+    (let [new-deck (storage/fork-deck! from-deck-id)]
+      {:status 302
+       :headers {"Location" (str "/deck/" (:deck/id new-deck) "/Edit")}}))
+
+
+    ;; on connect -> { :deck/id ..., :patch ... } (separate msg for each deck)
   ;; when deck changed by someone else -> { :deck/id ..., :patch ... }
 
   (GET "/api/decks" [:as req]
@@ -156,7 +170,7 @@
               ; TODO consider abstracting away storage + broadcasting behind a single thing
               (storage/patch-deck! deck-id patch)
               (broadcast! deck-id patch-message chan) ; don't send back to self (chan)
-              (broadcast! :decks  patch-message chan)))))))
+              ))))))
 
   (route/resources "/" {:root "public"}))
 

@@ -17,35 +17,46 @@
 
 
 (rum/defc deck [deck]
-  [:a.slide (core/turbolink (str "/deck/" (:deck/id deck)))
-    [:.slide-inner
-      [:.slide-text (:deck/id deck)]]])
+  [:.deck
+    [:a.slide (core/turbolink (str "/deck/" (:deck/id deck)))
+      [:.slide-inner
+        [:.slide-text (:deck/id deck)]]]
+    (let [spectators (count (disj (:deck/spectators deck) (:user/id deck)))]
+      (if (pos? spectators)
+        [:.deck-subtext.deck-subtext_spectators spectators " watching now"]
+        [:.deck-subtext (count (:deck/viewed-by deck)) " views"]))])
 
 
-(rum/defc decks-list [decks & [comp]]
+(rum/defc decks-list [decks & [additional]]
   [:.decks-list
-    (for [d (sort-by :deck/id decks)]
-      (deck d))
-    comp])
+    additional
+    (for [d (->> (sort-by :deck/id decks) reverse)]
+      (deck d))])
 
 
 (rum/defc page < rum/reactive []
-  (let [decks (vals (rum/react *decks))]
+  (let [decks (vals (rum/react *decks))
+        [live intro yours rest] (u/split decks
+                                  core/presenting?
+                                  #(= "user-deckatron" (:user/id %))
+                                  #(= core/user-id (:user/id %)))]
     [:.page_home
       [:h1 "Intro to Deckatron"]
-      (decks-list
-        (filter #(= core/user-deckatron (:user/id %)) decks))
+      (decks-list intro)
+     
+      [:h1 "LIVE"]
+      (decks-list live)
      
       [:h1 "Your decks"]
-      (decks-list
-        (filter #(= core/user-id (:user/id %)) decks)
-        [:a.slide {:href "/create-deck"}
-          [:.slide-inner
-            [:.slide-text "+ Create new deck"]]])
+      (decks-list yours
+        [:.deck
+          [:a.slide.slide_new {:href "/create-deck"}
+            [:.slide-inner
+              [:.slide-text "+ Create new deck"]]]
+          [:.deck-subtext]])
      
       [:h1 "Other people’s decks"]
-      (decks-list
-        (remove #(#{core/user-id core/user-deckatron} (:user/id %)) decks))]))
+      (decks-list rest)]))
 
 
 (defmethod core/start-page! :home [_ mount-el]

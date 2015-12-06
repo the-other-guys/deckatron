@@ -11,9 +11,9 @@ body.err { border-top: 2px solid #C33; }
 
 .menu { width: 100%; position: fixed; top: 0; left: 0; }
 
-.logo, .menu-modes, .menu-theme, .menu-stats { display: inline-block; height: 44px; line-height: 32px; border: 4px solid #FFF; border-radius: 10px; background: white; }
+.logo, .menu-modes, .menu-theme, .menu-fork, .menu-stats { display: inline-block; height: 44px; line-height: 32px; border: 4px solid #FFF; border-radius: 10px; background: white; }
 
-.logo > div, .menu-mode, .menu-theme > div, .menu-stats > div { border: 2px solid #000; border-radius: 6px; border-bottom-width: 4px; height: 100%; }
+.logo > div, .menu-mode, .menu-theme > div, .menu-fork > div, .menu-stats > div { border: 2px solid #000; border-radius: 6px; border-bottom-width: 4px; height: 100%; }
 
 .menu td { padding: 10px; text-align: center; white-space: nowrap; }
 
@@ -31,21 +31,30 @@ body.err { border-top: 2px solid #C33; }
 .menu-theme { width: 160px;  }
 .menu-theme > div { text-align: left; padding: 0 10px; }
 
+
 .td-stats { width: 180px; }
-.menu-stats { width: 150px; margin-right: 10px; }
+.menu-stats { width: 250px; margin-right: 10px; }
 .menu-stats-bullet { display: inline-block; width: 14px; height: 14px; border-radius: 10px; border: 0px solid black; background: black; margin: 0 5px -2px 0; }
 .menu-stats-bullet_live { background: red; }
+.half { width: 50%; float: left; text-align: center; }
+.half + .half { border-left: 1px solid black; }
+.fork:hover { background: #3C3; color: white; }
 
 
 .slide { display: block; width: 40em; height: 22.5em; border: 0.3em solid black; margin: 2em; border-radius: 1.5em; white-space: pre-wrap; word-break: break-word; background: white; }
+.slide a { text-decoration: underline; }
 
 .slide-inner { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2.5em; }
 .slide_43 { height: 30em; }
 
 
-.page_home .slide { font-size: 5px; display: inline-block; }
-
-
+.page_home .deck { display: inline-block; vertical-align: top; }
+.page_home .slide { font-size: 5px; border-width: 2px; }
+.page_home { padding: 60px 30px; }
+.slide_new { border-style: dashed; }
+.deck-subtext { margin: -6px 14px 0; font-size: 13px; color: #999; text-align: right; }
+.deck-subtext_spectators { text-align: left; }
+.deck-subtext_spectators:before { content: "●"; color: red; margin-right: 5px;  }
 
 .page_deck-edit > .editor, 
 .page_deck-edit > .slides { float: left; }

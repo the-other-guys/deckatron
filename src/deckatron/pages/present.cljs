@@ -38,7 +38,7 @@
 
 (rum/defc slides < rum/reactive, listen-keyboard [slides *slide]
   [:.slides
-    (core/slide (nth slides (rum/react *slide)))])
+    (core/slide (nth slides (rum/react *slide) nil))])
 
 
 (def set-starting-slide
@@ -46,6 +46,11 @@
     (fn [state] 
       (let [[*deck] (:rum/args state)]
         (swap! *deck assoc :presenter-slide 0))
+      state)
+    :will-unmount
+    (fn [state] 
+      (let [[*deck] (:rum/args state)]
+        (swap! *deck dissoc :presenter-slide))
       state) })
 
 
@@ -82,5 +87,5 @@
                  :height       height} }
       (when-let [content (:deck/content deck)]
         [:.slides
-          (core/slide (nth (core/slides content) (:presenter-slide deck)))])]))
+          (core/slide (nth (core/slides content) (:presenter-slide deck) nil))])]))
 
