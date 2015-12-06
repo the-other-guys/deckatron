@@ -10,44 +10,52 @@
 (enable-console-print!)
 
 
-(defonce *slide (atom 0))
-
-
-(defn listen-keyboard [on-keydown]
+(def listen-keyboard
   { :did-mount
     (fn [state]
-      (.addEventListener js/document "keydown" on-keydown)
+      (let [[slides *slide] (:rum/args state)
+            max-idx         (dec (count slides))]
+        (set! js/document.onkeydown
+          (fn [e]
+            (let [current @*slide
+                  idx     (condp contains? (.-keyCode e)
+                            #{8 37 38 33 80}  (dec current) ;; backspace, left, up, pageup, p
+                            #{13 32 39 40 34} (inc current) ;; enter, space, right, down, pagedown
+                            #{36}             0             ;; home
+                            #{35}             max-idx       ;; end
+                            nil)]
+              (when idx
+                (let [idx (-> idx (max 0) (min max-idx))]
+                  (when (not= current idx)
+                    (reset! *slide idx)))
+                (.preventDefault e))))))
       state)
     :will-unmount
     (fn [state]
-      (.removeEventListener js/document "keydown" on-keydown)
+      (set! js/document.onkeydown nil)
       state) })
 
 
-(defn handle-keyboard [e]
-  (when (condp contains? (.-keyCode e)
-          #{8 37 38 33 80}  (swap! *slide dec)    ;; backspace, left, up, pageup, p
-          #{13 32 39 40 34} (swap! *slide inc)    ;; enter, space, right, down, pagedown
-          #{36}             (reset! *slide 0)     ;; home
-          #{35}             (reset! *slide 10000) ;; end
-          nil)
-    (.preventDefault e)))
+(rum/defc slides < rum/reactive, listen-keyboard [slides *slide]
+  [:.slides
+    (core/slide (nth slides (rum/react *slide)))])
 
 
-(rum/defc slides  < rum/reactive
-                    (listen-keyboard handle-keyboard)
-  [slides]
-  (let [idx (-> (rum/react *slide)
-                (max 0)
-                (min (dec (count slides))))]
-    (when (not= (rum/react *slide) idx)
-      (reset! *slide idx))
-    [:.slides
-      (core/slide (nth slides idx))]))
+(def set-starting-slide
+  { :will-mount
+    (fn [state] 
+      (let [[*deck] (:rum/args state)]
+        (swap! *deck assoc :presenter-slide 0))
+      state)
+    :will-unmount
+    (fn [state] 
+      (let [[*deck] (:rum/args state)]
+        (swap! *deck dissoc :presenter-slide))
+      state) })
 
 
 (rum/defc present-page < rum/reactive
-                         { :will-mount (fn [s] (reset! *slide 0) s) }
+                         set-starting-slide
   [*deck socket]
   (let [deck   (rum/react *deck)
         width  (rum/react core/*window-width)
@@ -61,5 +69,5 @@
                  :font-size    (str (u/width->font-size w false) "px")
                  :height       height} }
       (when-let [content (:deck/content deck)]
-        (slides (core/slides content)))]))
+        (slides (core/slides content) (rum/cursor *deck [:presenter-slide])))]))
 
