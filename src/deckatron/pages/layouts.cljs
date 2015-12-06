@@ -33,6 +33,9 @@
 (defn- parse-blockquote [lines]
   (map (fn [%] [:blockquote (parse-span %)]) lines))
 
+(defn- parse-pre [lines]
+  (str/join "\n" (map (fn [l] (str/join (map :e/text (:l/elements l)))) lines)))
+
 (defn- parse-p [p]
   (case (:p/type p)
     :h1 [:h1 (parse-tx (:p/lines p))]
@@ -42,6 +45,7 @@
     :ordered-list [:ol (parse-li (:p/lines p))]
     :unordered-list [:ul (parse-li (:p/lines p))]
     :blockquote (parse-blockquote (:p/lines p))
+    :code [:pre (parse-pre (:p/lines p))]
     [:div (parse-tx (:p/lines p))]
     )
   )
