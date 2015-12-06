@@ -53,6 +53,12 @@
 (defn- ->html [slide]
   (map parse-p slide))
 
+(rum/defc notes-layout [ast]
+  [:.note
+   [:.slide-inner
+    [:.slide-text (->html ast)]]])
+
+
 (rum/defc default-layout [slide]
     [:.slide
      [:.slide-inner
@@ -91,10 +97,16 @@
    [:h2 :h4] two-headed-centered-layout})
 
 
-(defn slide->layout [slide]
-   (print (str "slide: " slide))
-  (let [ast    (:s/paragraphs slide)
-        key    (mapv :p/type ast)
-        layout (get LAYOUTS key default-layout)]
-     (print (str "layout key: " key))
-    (layout ast)))
+(defn- ->layout [slide]
+  (print (str "slide: " slide))
+  (if (= :notes (:s/type slide))
+    notes-layout
+    (let [key    (mapv :p/type (:s/paragraphs slide))
+          layout (get LAYOUTS key default-layout)]
+      (print (str "layout key: " key))
+      layout)))
+
+
+(defn render-slide [slide]
+  (let [layout (->layout slide)]
+    (layout (:s/paragraphs slide))))

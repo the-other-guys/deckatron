@@ -81,7 +81,7 @@
   (->slides txt))
 
 (defn slide [s]
-   (layouts/slide->layout s))
+   (layouts/render-slide s))
 
 
 (defn presenting? [deck]

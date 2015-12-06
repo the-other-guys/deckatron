@@ -166,7 +166,7 @@
         pages (->> (clojure.string/split t COMMENTS-SEPARATOR)
                    (mapv #(clojure.string/split % SLIDES-SEPARATOR)))
         f (fn [[c & ss]]
-            [{:s/type :comment :s/text c}
+            [{:s/type :notes :s/text c}
              (mapv #(into {} {:s/type :slide :s/text %}) ss)])
         slides (->> pages
                    (map f)
