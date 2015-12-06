@@ -10,8 +10,9 @@
 
 (defn parse-path [path]
   (condp re-matches path
-    #"/"              [:home]
-    #"/deck/(.+)/(.+)" :>> (fn [[_ id mode]] [:deck id mode])))
+    #"/"                         [:home]
+    #"/deck/([^/]+)"         :>> (fn [[_ id mode]] [:deck id])
+    #"/deck/([^/]+)/([^/]+)" :>> (fn [[_ id mode]] [:deck id mode])))
 
 
 (def *last-path (atom nil))

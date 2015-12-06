@@ -31,31 +31,6 @@
 (defonce *pending-deck (atom nil))
 
 
-(defn validate-and-enforce-mode! [deck mode]
-  (let [author?     (core/author? deck)
-        not-author? (not author?)
-        redirect    (fn [mode]
-                      (core/fake-navigate-url (core/->deck-href deck mode) nil))]
-    (cond
-      (and not-author? (= mode "Edit"))
-        (redirect "Read")
-      (and not-author? (clojure.string/blank? mode))
-        (redirect "Read")
-      (and author? (clojure.string/blank? mode))
-        (redirect "Edit")
-      (and author? (= mode "Spectate"))
-        (redirect "Present")
-      (and not-author? (= mode "Present"))
-        (redirect "Spectate"))))
-
-
-(add-watch *pending-deck ::default-mode
-  (fn [_ _ old deck]
-    (when (nil? old) ;; first load
-      (validate-and-enforce-mode! deck (core/->mode)))
-    (remove-watch *pending-deck ::default-mode)))
-
-
 (def sync-interval 1000)
 
 
@@ -86,33 +61,30 @@
        sync-interval))))
 
 
-(rum/defc menu-mode [text mode]
-  (let [selected? (= text mode)
-        href (core/->deck-href @*pending-deck text)]
-    [:.menu-mode
-      { :class    (when selected? "menu-mode_selected")
-        :on-click (partial core/fake-navigate-url href) }
-      text]))
+(rum/defc menu-mode [deck-id text mode]
+  [:.menu-mode
+    (merge { :class (when (= text mode) "menu-mode_selected") }
+           (core/turbolink (str "/deck/" deck-id "/" text)))
+    text])
 
 
 (rum/defc menu [deck mode]
-  (let [author? (core/author? deck)
+  (let [deck-id (:deck/id deck)
+        author? (core/author? deck)
         spectators (count (disj (:deck/spectators deck) core/user-id))]
     [:table.menu
       [:tbody
         [:tr
           [:td.td-logo
-            [:a.logo {:href "/"
-                      :on-click (partial core/fake-navigate-url "/")}
-             [:div "⟵"]]]
+            [:a.logo (core/turbolink "/") [:div "⟵"]]]
           [:td.td-modes
             [:.menu-modes
               (when author?
-                (menu-mode "Edit" mode))
-              (menu-mode "Read" mode)
+                (menu-mode deck-id "Edit" mode))
+              (menu-mode deck-id "Read" mode)
               (if author?
-                (menu-mode "Present" mode)
-                (menu-mode "Spectate" mode))]]
+                (menu-mode deck-id "Present" mode)
+                (menu-mode deck-id "Spectate" mode))]]
           [:td.td-theme
             (when author?
               [:.menu-theme [:div "Theme" [:span {:style {"float" "right"}} "▾"]]])]
@@ -125,28 +97,12 @@
                     (str spectators " watching live")]
                   [:div
                     (str (count (:deck/viewed-by deck)) " total views")])]]]]]))
-                  
 
-(rum/defc page < rum/reactive []
-  (let [deck  (rum/react *pending-deck)
-        value (or (rum/react *pending-content)
-                  (:deck/content deck))]
-    [:.page_deck
-      (menu deck (core/->mode))
-      [:textarea.editor 
-        { :value     value
-          :on-change (fn [e]
-                       (reset! *pending-content (.. e -target -value))) }]
-      [:.slides
-        (for [slide (str/split value #"(?:---|===)")]
-          [:.slide
-            [:.slide-inner
-              [:.slide-text slide]]])]]))
 
-(rum/defc deck-page < rum/reactive []
-  (let [mode (core/->mode)]
+(rum/defc deck-page < rum/reactive [mode]
+  (when-let [deck (rum/react *pending-deck)]
     [:.page_deck
-      (menu (rum/react *pending-deck) mode)
+      (menu deck mode)
       (case mode
         "Edit"     (edit/edit-page *pending-deck)
         "Read"     (read/read-page *pending-deck)
@@ -166,6 +122,19 @@
     (reset! *pending-deck (u/patch @*server-deck delta))))
 
 
+(defn validate-mode! [deck mode]
+  (when deck
+    (let [author? (core/author? deck)
+          go!     #(core/go! (str "/deck/" (:deck/id deck) "/" %))]
+      (case [author? mode]
+        [true  nil]        (go! "Edit")
+        [true  "Spectate"] (go! "Present")
+        [false nil]        (go! "Read")
+        [false "Present"]  (go! "Spectate")
+        [false "Edit"]     (go! "Read")
+        nil))))
+
+
 (defmethod core/start-page! :deck [[_ deck-id mode] mount-el]
   ;; TODO watch websocket status, reconnect
   (when (nil? socket)
@@ -179,7 +148,11 @@
                 :patch
                 (on-server-push)))))))
 
-  (rum/mount (deck-page) mount-el))
+  (add-watch *pending-deck ::validate-mode
+    (fn [_ _ _ deck]
+      (validate-mode! deck mode)))
+
+  (rum/mount (deck-page mode) mount-el))
 
 
 (defmethod core/stop-page! :deck [[_ deck-id] [next-mode next-deck-id]]
@@ -190,6 +163,7 @@
       (when socket
         (.close socket)
         (set! socket nil))
+      (remove-watch *pending-deck ::validate-mode)
       (reset! *server-deck nil)
       (reset! *pending-deck nil))))
 

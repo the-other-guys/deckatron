@@ -17,11 +17,9 @@
 
 
 (rum/defc deck [deck]
-  (let [href (core/->deck-href deck)]
-    [:a.slide {:href href
-               :on-click (partial core/fake-navigate-url href)}
-      [:.slide-inner
-        [:.slide-text (:deck/id deck)]]]))
+  [:a.slide (core/turbolink (str "/deck/" (:deck/id deck)))
+    [:.slide-inner
+      [:.slide-text (:deck/id deck)]]])
 
 
 (rum/defc decks-list [decks & [comp]]

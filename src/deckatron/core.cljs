@@ -15,30 +15,24 @@
 (def user-id (second (re-find #"user-id=([a-z0-9\-]+)" js/document.cookie)))
 (println ":user/id" user-id)
 
-(defn ->deck-id []
-  (second (re-matches #"/deck/(.+)/(.+)" js/window.location.pathname)))
-
-(defn ->mode []
-  (nth (re-matches #"/deck/(.+)/(.+)" js/window.location.pathname) 2))
 
 (defn author? [deck]
   (= user-id (:user/id deck)))
 
-(defn ->default-mode [deck]
-  (condp = (:user/id deck)
-    user-id "Edit"
-    user-deckatron "Read"
-    "Read"))
 
-(defn ->deck-href
-  ([deck]      (->deck-href deck (->default-mode deck)))
-  ([deck mode] (str "/deck/" (:deck/id deck) "/" mode)))
+(defn go!
+  ([href]
+    (js/history.pushState nil nil href)
+    (js/window.onpopstate))
+  ([href e]
+    (.preventDefault e)
+    (go! href)))
 
-(defn fake-navigate-url [href e]
-  (when e
-    (.preventDefault e))
-  (js/history.pushState nil nil href)
-  (js/window.onpopstate))
+
+(defn turbolink [url]
+  { :href url
+    :on-click (fn [e] (go! url e)) })
+
 
 (def aspect (/ 16 9))
 
