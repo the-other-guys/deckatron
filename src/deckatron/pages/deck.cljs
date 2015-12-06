@@ -33,7 +33,7 @@
 
 (defn validate-and-enforce-mode! [deck mode]
   (let [author?     (core/author? deck)
-        not-author? (complement author?)
+        not-author? (not author?)
         redirect    (fn [mode]
                       (core/fake-navigate-url (core/->deck-href deck mode) nil))]
     (cond
