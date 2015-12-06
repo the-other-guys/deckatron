@@ -69,7 +69,7 @@
                  :font-size    (str (u/width->font-size w false) "px")
                  :height       height} }
       (when-let [content (:deck/content deck)]
-        (slides (core/->slides-and-notes content) (rum/cursor *deck [:presenter-slide])))]))
+        (slides (core/->slides-only content) (rum/cursor *deck [:presenter-slide])))]))
 
 
 (rum/defc spectate-page < rum/reactive
