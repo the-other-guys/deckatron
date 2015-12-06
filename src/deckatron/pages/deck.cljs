@@ -19,14 +19,36 @@
 (defonce socket nil)
 
 
+(defonce *pending-content (atom nil))
+
+
 ;; latest deck with applied/confirmed changes from server
 (defonce *server-deck (atom nil))  
 
 ;; = server-deck + pending local changes
 ;; Client pages work with this one, chaning it directly.
 ;; Changes made to this atom will be automatically synced to server
-(defonce *pending-deck (atom nil)) 
-                                  
+(defonce *pending-deck (atom nil))
+
+
+(defn validate-and-enforce-mode! [deck mode]
+  (let [author?     (core/author? deck)
+        not-author? (complement author?)
+        redirect    (fn [mode]
+                      (core/fake-navigate-url (core/->deck-href deck mode) nil))]
+    (cond
+      (and not-author? (= mode "Edit"))
+      (redirect "Read")
+      (and not-author? (clojure.string/blank? mode))
+      (redirect "Read")
+      (and author? (clojure.string/blank? mode))
+      (redirect "Edit"))))
+
+(add-watch *pending-deck ::default-mode
+  (fn [_ _ old deck]
+    (when (nil? old) ;; first load
+      (validate-and-enforce-mode! deck (core/->mode)))
+    (remove-watch *pending-deck ::default-mode)))
 
 (def sync-interval 1000)
 
@@ -58,34 +80,26 @@
        sync-interval))))
 
 
-(defonce *mode (atom "Read"))
-
-
-(add-watch *pending-deck ::default-mode
-  (fn [_ _ old deck]
-    (when (nil? old) ;; first load
-      (if (= core/user-id (:user/id deck))
-        (reset! *mode "Edit")
-        (reset! *mode "Read")))
-    (remove-watch *pending-deck ::default-mode)))
-
-
 (rum/defc menu-mode [text mode]
-  (let [selected? (= text mode)]
+  (let [selected? (= text mode)
+        href (core/->deck-href @*pending-deck text)]
     [:.menu-mode
       { :class    (when selected? "menu-mode_selected")
-        :on-click (fn [_] (reset! *mode text)) }
+        :on-click (partial core/fake-navigate-url href) }
       text]))
 
 
 (rum/defc menu [deck mode]
-  (let [author? (= core/user-id (:user/id deck))
+  (let [author? (core/author? deck)
         spectators (count (:deck/spectators deck))]
+    (print (prn-str deck))
     [:table.menu
       [:tbody
         [:tr
           [:td.td-logo
-            [:a.logo { :href "/" } [:div "⟵"]]]
+            [:a.logo {:href "/"
+                      :on-click (partial core/fake-navigate-url "/")}
+             [:div "⟵"]]]
           [:td.td-modes
             [:.menu-modes
               (when author?
@@ -102,9 +116,24 @@
                   { :class (when (pos? spectators) "menu-stats-bullet_live") }]
                   (str spectators " watching live")]]]]]]))
 
+(rum/defc page < rum/reactive []
+  (let [deck  (rum/react *pending-deck)
+        value (or (rum/react *pending-content)
+                  (:deck/content deck))]
+    [:.page_deck
+      (menu deck (core/->mode))
+      [:textarea.editor 
+        { :value     value
+          :on-change (fn [e]
+                       (reset! *pending-content (.. e -target -value))) }]
+      [:.slides
+        (for [slide (str/split value #"(?:---|===)")]
+          [:.slide
+            [:.slide-inner
+              [:.slide-text slide]]])]]))
 
 (rum/defc deck-page < rum/reactive []
-  (let [mode (rum/react *mode)]
+  (let [mode (core/->mode)]
     [:.page_deck
       (menu (rum/react *pending-deck) mode)
       (case mode
@@ -127,9 +156,6 @@
 
 
 (defn refresh! [deck-id]
-  (when-not @*deck-id
-    (reset! *deck-id deck-id))
-
   (when socket
     (.close socket)
     (reset! *server-deck nil)

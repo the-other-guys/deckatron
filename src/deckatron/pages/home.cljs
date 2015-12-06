@@ -2,8 +2,7 @@
   (:require
     [rum.core :as rum]
     [deckatron.util :as u]
-    [deckatron.core :as core]
-    [deckatron.parser :as parser]))
+    [deckatron.core :as core]))
 
 
 (enable-console-print!)
@@ -14,14 +13,15 @@
 
 (defonce *decks (atom {})) ;; deck-id => Deck
 
-
 ;; (add-watch *decks ::log (fn [_ _ _ v] (println "Decks:" v)))
 
 
 (rum/defc deck [deck]
-  [:a.slide {:href (str "/deck/" (:deck/id deck))}
-    [:.slide-inner
-      [:.slide-text (:deck/id deck)]]])
+  (let [href (core/->deck-href deck)]
+    [:a.slide {:href href
+               :on-click (partial core/fake-navigate-url href)}
+      [:.slide-inner
+        [:.slide-text (:deck/id deck)]]]))
 
 
 (rum/defc decks-list [decks & [comp]]
@@ -36,7 +36,7 @@
     [:.page_home
       [:h1 "Intro to Deckatron"]
       (decks-list
-        (filter #(= "user-deckatron" (:user/id %)) decks))
+        (filter #(= core/user-deckatron (:user/id %)) decks))
      
       [:h1 "Your decks"]
       (decks-list
@@ -46,7 +46,8 @@
             [:.slide-text "+ Create new deck"]]])
      
       [:h1 "Other people’s decks"]
-      (decks-list (remove #(#{core/user-id "user-deckatron"} (:user/id %)) decks))]))
+      (decks-list
+        (remove #(#{core/user-id core/user-deckatron} (:user/id %)) decks))]))
 
 
 (defn refresh! []
