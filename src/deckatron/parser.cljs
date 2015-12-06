@@ -13,9 +13,16 @@
 (def ^:private parser
   ;;https://github.com/chameco/Hitman/blob/master/src/hitman/core.clj#L9
   (insta/parser
-    "<Blocks> = (EOL | Paragraph | Header | List | Ordered | Code)+
+    "<Blocks> = (EOL | Paragraph | Header | List | Ordered | Code | CodeBlock | BlockQuote)+
+    CodeBlock = CodeMarker Whitespace+ CodeLanguage EOL CodeLine+ CodeMarker EOL
+    CodeLanguage = LineChar*
+    <CodeMarker> = '```'
+    CodeLine = LineChar* EOL
     Header = Headermarker Whitespace+ Span EOL
     <Headermarker> = ('#' | '##' | '###' | '####')
+    BlockQuote = QuoteLine+ Blankline+
+    QuoteLine = QuoteMarker Whitespace+ LineChar* EOL
+    <QuoteMarker> = '>'
     List = Listline+ Blankline+
     Listline = Listmarker Whitespace+ Span EOL
     <Listmarker> = <'+' | '*' | '-'>
@@ -43,6 +50,8 @@
 (defn- ->paragraph [type elements]
   {:p/type type :p/lines elements})
 
+(defn- ->code-paragraph [type language elements]
+  {:p/type type :p/language language :p/lines elements})
 
 (defn- reduce-spans [ss]
   (let [f (fn [m1 m2]
@@ -109,8 +118,20 @@
 (defn- reduce-res [elms]
   [{:l/elements (reduce-elements elms [])}])
 
-(defn- ordered-lines [elms]
+(defn- list-lines [elms]
   (mapcat #(reduce-res (vec (rest (rest %)))) elms))
+
+(defn- quote-line [letters]
+  [{:l/elements (->element (string/join letters) [])}])
+
+(defn- quote-lines [elms]
+  (mapcat #(quote-line (drop 3 %)) elms))
+
+(defn- code-lines [elms]
+  (mapcat #(quote-line (rest %)) elms))
+
+(defn- lang-name [elms]
+  (string/join (rest elms)))
 
 (defn- header-key [q]
   (case q
@@ -123,9 +144,11 @@
 (defn- reduce-block [b]
     (case (first b)
       :Span (->paragraph :text (reduce-res b))
-      :Ordered (->paragraph :ordered-list (ordered-lines (rest b)))
-      :List (->paragraph :unordered-list (ordered-lines (rest b)))
+      :Ordered (->paragraph :ordered-list (list-lines (rest b)))
+      :List (->paragraph :unordered-list (list-lines (rest b)))
       :Header (->paragraph (header-key (second b)) (reduce-res (nth b 3)))
+      :BlockQuote (->paragraph :blockquote (quote-lines (rest b)))
+      :CodeBlock (->code-paragraph :code (lang-name (nth b 3)) (code-lines (drop-last (drop 4 b))))
       :Paragraph (->paragraph :text (reduce-res (concat-samelevel-spans (vec (rest b)))))))
 
 (defn- reduce-blocks [blocks]
@@ -236,28 +259,20 @@
                                               {:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:code}}]}]}])))
 
-;(deftest test-parse-blockquote
-;  (is (= (parse (str "> foo bar baz\n"
-;                     "> foo bar baz\n\n"))
-;         [{:p/type :blockquote, :p/lines [{:l/elements [{:e/text "foo bar baz", :e/types #{}}]}
-;                                          {:l/elements [{:e/text "foo bar baz", :e/types #{}}]}]}])))
-;
-;(deftest test-parse-code-block
-;  (is (= (parse (str "``` clojure\n"
-;                     "(+ 1 2)\n"
-;                     "(identity +)\n"
-;                     "```\n"))
-;          [{:p/type :code,
-;            :p/language "clojure"
-;            :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
-;                      {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
-;(deftest test-parse-code-block
-;  (is (= (parse (str "``` clojure\n"
-;                     "(+ 1 2)\n"
-;                     "(identity +)\n"
-;                     "```\n"))
-;          [{:p/type :code, :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
-;                                     {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
+(deftest test-parse-blockquote
+  (is (= (parse (str "> foo bar baz\n"
+                     "> foo bar baz\n\n"))
+         [{:p/type :blockquote, :p/lines [{:l/elements [{:e/text "foo bar baz", :e/types #{}}]}
+                                          {:l/elements [{:e/text "foo bar baz", :e/types #{}}]}]}])))
+
+(deftest test-parse-code-block
+  (is (= (parse (str "``` clojure\n"
+                     "(+ 1 2)\n"
+                     "(identity +)\n"
+                     "```\n"))
+          [{:p/type :code, :p/language "clojure"
+                           :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
+                                     {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
 
 
 
