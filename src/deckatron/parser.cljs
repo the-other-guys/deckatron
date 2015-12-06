@@ -32,7 +32,11 @@
     Code = Codeline+ Blankline+
     Codeline = <Space Space Space Space> Span EOL
     Paragraph = Span+ Blankline+
-    Span = (LineChar | Strike | Code | Em | Strong)+
+    Span = (LineChar | Strike | Code | Em | Strong | Link | Image)+
+    Image = '![' Name '](' URL ')'
+    Link = '[' Name '](' URL ')'
+    Name = LineChar+
+    URL = LineChar+
     Strong = ('**' Span '**' | '__' Span '__')
     Code = '`' Span '`'
     Strike = ('~' Span '~' | '-' Span '-')
@@ -46,6 +50,10 @@
 (defn- ->element [s & types]
   (if (== (count s) 0) []
     [{:e/text s :e/types (set (flatten types))}]))
+
+(defn- ->ref-element [s l types]
+  (if (== (count s) 0) []
+    [{:e/text s :e/href l :e/types (set (flatten types))}]))
 
 (defn- ->paragraph [type elements]
   {:p/type type :p/lines elements})
@@ -102,6 +110,9 @@
     (if (string? (first elms)) (span-rest (rest elms) elms) elms)
     elms))
 
+(defn- remove-key [elms]
+  (string/join (rest elms)))
+
 (defn- reduce-elements [elms tags]
     (if (> (count elms) 0)
         (case (first elms)
@@ -111,6 +122,8 @@
               :Code (reduce-elements (nth elms 2) (concat tags [:code]))
               :Strike(reduce-elements (nth elms 2) (concat tags [:strike]))
               :Strong (reduce-elements (nth elms 2) (concat tags [:strong]))
+              :Image (->ref-element (remove-key (nth elms 2)) (remove-key (nth elms 4)) [:image])
+              :Link (->ref-element (remove-key (nth elms 2)) (remove-key (nth elms 4)) [:link])
               (concat (reduce-elements (first elms) tags)
                 (if (> (count (rest elms)) 0) (reduce-elements (concat [:Span] (rest elms)) tags) [])))
         []))
@@ -180,15 +193,15 @@
 ;; TESTS
 
 
-;(deftest test-parse-inline-img
-;  (is (= (parse "![kfc gif](http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif)\n\n")
-;         [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:image}
-;                                                   :e/href "http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif"}]}]}])))
+(deftest test-parse-inline-img
+  (is (= (parse "![kfc gif](http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif)\n\n")
+         [{:p/type :text, :p/lines [{:l/elements [{:e/text "kfc gif", :e/types #{:image}
+                                                   :e/href "http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif"}]}]}])))
 
-;(deftest test-parse-url
-;  (is (= (parse "[key note](https://www.youtube.com/watch?v=FihU5JxmnBg)\n\n")
-;         [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:link}
-;                                                   :e/href "https://www.youtube.com/watch?v=FihU5JxmnBg"}]}]}])))
+(deftest test-parse-url
+  (is (= (parse "[key note](https://www.youtube.com/watch?v=FihU5JxmnBg)\n\n")
+         [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:link}
+                                                   :e/href "https://www.youtube.com/watch?v=FihU5JxmnBg"}]}]}])))
 (deftest test-parse-simple
   (is (= (parse "hsj ajkds ashjdk\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "hsj ajkds ashjdk", :e/types #{}}]}]}])))
