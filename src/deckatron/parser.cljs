@@ -149,13 +149,13 @@
 
 
 (defn parse-string [s]
-  (println (str "parsing string: " s))
+;;   (println (str "parsing string: " s))
   (->> s parser vec reduce-blocks))
 
 (defn parse [slide]
-  (println (str "parsing slide: " slide))
+;;   (println (str "parsing slide: " slide))
   (let [ast (-> slide :s/text parse-string vec)]
-    (println (str "extracted ast: " ast))
+;;     (println (str "extracted ast: " ast))
     (assoc slide :s/paragraphs ast)))
 
 
@@ -173,7 +173,7 @@
                    flatten
                    (remove #(clojure.string/blank? (:s/text %)))
                    vec)]
-    (print (str "split slides:" slides))
+;;     (print (str "split slides:" slides))
     slides))
 
 ;; TESTS

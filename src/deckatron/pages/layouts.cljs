@@ -98,12 +98,12 @@
 
 
 (defn- ->layout [slide]
-  (print (str "slide: " slide))
+;;   (print (str "slide: " slide))
   (if (= :notes (:s/type slide))
     notes-layout
     (let [key    (mapv :p/type (:s/paragraphs slide))
           layout (get LAYOUTS key default-layout)]
-      (print (str "layout key: " key))
+;;       (print (str "layout key: " key))
       layout)))
 
 
