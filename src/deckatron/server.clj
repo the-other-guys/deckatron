@@ -10,36 +10,61 @@
     [ring.util.response :as response])
   (:gen-class))
 
-; # Types (please, reflect what's implementated)
+; # Types (please, keep up to date with current implementation)
 ;
 ; Deck {:deck/id       <id-string>
 ;       :deck/content  <string>
 ;       :user/id       <id-string>}
 
 
-(defn- send-patch! [chan deck-id patch]
-  (->> { :deck/id deck-id
-         :patch   patch }
-       (u/obj->transit)
-       (httpkit/send! chan)))
+(defn send-obj! [chan o]
+  (httpkit/send! chan (u/obj->transit o)))
+
+(defn new-patch-message [deck-id patch]
+  {:deck/id deck-id
+   :patch   patch})
+
+;; broadcasting
+(def *subject->chans (atom {})) ; Object -> #{Channel}
+
+(defn listen [subject chan]
+  (println "+++ " subject chan)
+  (swap! *subject->chans update subject #(conj (or % #{}) chan)))
+
+(defn unlisten [subject chan]
+  (println "--- " subject chan)
+  (swap! *subject->chans
+    (fn [m]
+      (let [new-chans (disj (get m subject) chan)]
+        (if (empty? new-chans)
+          (dissoc m subject)
+          (assoc  m subject new-chans))))))
+
+(defn broadcast!
+  ([subject message]             (broadcast! subject message nil))
+  ([subject message ignore-chan] (doseq [chan (get (deref *subject->chans) subject)
+                                        :when (not= chan ignore-chan)]
+                                   (println "!!! " chan message)
+                                   (send-obj! chan message))))
+
 
 
 (defroutes routes
-  
+
   ;; Home page
-  
+
   (GET "/" []
     (response/resource-response "public/index.html"))
-  
-  
+
+
   ;; Deck page
-  
+
   (GET "/deck/:id" []
     (response/resource-response "public/index.html"))
-  
-  
+
+
   ;; redirect to /deck/:id page
-  
+
   (GET "/create-deck" [:as req]
     (let [user-id (:user/id req)
           deck    (storage/create-deck! user-id)
@@ -47,62 +72,65 @@
        (println "Created" deck-id)
        { :status  302
          :headers {"Location" (str "/deck/" deck-id)}}))
-  
-  
+
+
   ;; on connect -> { :deck/id ..., :patch ... } (separate msg for each deck)
   ;; when deck changed by someone else -> { :deck/id ..., :patch ... }
-  
+
   (GET "/api/decks" [:as req]
     (let [user-id (:user/id req)]
       (httpkit/with-channel req chan
         (println "Connected" user-id "to ALL")
+
         ;; initial payload
         (doseq [deck (storage/all-decks)]
-          (send-patch! chan (:deck/id deck) (u/diff nil deck)))
-        ;; TODO register user in broadcast map
+          (send-obj! chan (new-patch-message (:deck/id deck) (u/diff nil deck))))
+
+        (listen :decks chan)
+
         (httpkit/on-close chan
           (fn [status]
             (println "Disconnected" user-id "from ALL")
-            ;; TODO remove from broadcast list
-            ))
+            (unlisten :decks chan)))
         ;; nothing to receive
         )))
-  
-  
+
+
   ;; on connect                        -> { :deck/id ..., :patch ... }
   ;; when deck changed by someone else -> { :deck/id ..., :patch ... }
   ;; when deck changed by this user    <- { :deck/id ..., :patch ... }
-  
+
   (GET "/api/deck/:deck-id" [deck-id :as req]
     (let [user-id (:user/id req)]
       (httpkit/with-channel req chan
         (println "Connected" user-id "to" deck-id)
-        
+
         ;; initial payload
         (let [deck (storage/get-deck deck-id)]
-          (send-patch! chan deck-id (u/diff nil deck)))
-        
-        ;; TODO register user in broadcast map
-        ;; TODO add spectator + broadcast
+          (send-obj! chan (new-patch-message deck-id (u/diff nil deck))))
+
+        (listen deck-id chan)
 
         (httpkit/on-close chan
           (fn [status]
             (println "Disconnected" user-id "from" deck-id)
-            ;; TODO remove from broadcast list
-            ;; TODO remove spectator + broadcast
-            ))
+            (unlisten deck-id chan)))
 
         (httpkit/on-receive chan
           (fn [bytes]
             ;; applying patch
             (let [{:keys [patch]} (u/transit->obj bytes)
-                  old (storage/get-deck deck-id)]
+                  old             (storage/get-deck deck-id)
+                  patch-message   (new-patch-message deck-id patch)]
+
               (when (not= (:user/id old) user-id)
                 (u/die "Access denied" { :deck/id deck-id, :user/id user-id }))
+
               (println "Updating" deck-id)
               (storage/update-deck! deck-id patch)
-              ;; TODO broadcast
-              ))))))
+
+              (broadcast! deck-id patch-message chan)
+              (broadcast! :decks  patch-message patch)))))))
 
   (route/resources "/" {:root "public"}))
 
