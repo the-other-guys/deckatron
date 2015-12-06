@@ -21,10 +21,10 @@
     [:a.slide (core/turbolink (str "/deck/" (:deck/id deck)))
       [:.slide-inner
         [:.slide-text (:deck/id deck)]]]
-    (let [spectators (count (disj (:deck/spectators deck) (:user/id deck)))]
-      (if (pos? spectators)
+    (let [spectators (count (:deck/spectators deck))]
+      (if (core/presenting? deck)
         [:.deck-subtext.deck-subtext_spectators spectators " watching now"]
-        [:.deck-subtext (count (:deck/viewed-by deck)) " views"]))])
+        [:.deck-subtext (count (:deck/viewed-by deck)) " viewers"]))])
 
 
 (rum/defc decks-list [decks & [additional]]
