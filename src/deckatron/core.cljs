@@ -67,12 +67,27 @@
 (defmulti stop-page! (fn [path next-path] (first path)))
 
 
+(defonce parsed-deck-cache (atom {})) ;; {unparsed-slide parsed-slide}
+
+
+(defn parse-with-cache! [cache vs]
+  (let [keys-to-drop  (clojure.set/difference (set (keys @cache)) (set vs))
+        _             (apply (partial swap! cache dissoc) keys-to-drop)
+        keys-to-parse (clojure.set/difference (set vs) (keys @cache))
+        parsed        (mapv #(vec [% (p/parse %)]) keys-to-parse)]
+    (print (str "dropped from cache: " (count keys-to-drop) "\n" keys-to-drop))
+    (print (str "added to cache: "(count keys-to-parse) "\n" keys-to-parse))
+    (print (str "total in cache: "(count (keys @cache))))
+    (doseq [[k v] parsed]
+      (swap! cache assoc k v))))
+
 (defn- ->slides [txt]
-  (let [pages (->> txt
-                   p/split-text-into-slides
-                   (mapv p/parse))]
-;;     (println (str "pages:" pages))
-    pages))
+  (print (str "cache before: " @parsed-deck-cache))
+  (let [unparsed (->> txt p/split-text-into-slides)
+        _        (parse-with-cache! parsed-deck-cache unparsed)
+        slides   (mapv #(get @parsed-deck-cache %) unparsed)]
+    (print (str "cache after: " @parsed-deck-cache))
+    slides))
 
 (defn ->slides-only [txt]
   (->> txt ->slides (filter #(= :slide (:s/type %)))))
