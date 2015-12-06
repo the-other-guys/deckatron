@@ -18,8 +18,11 @@
 
 (rum/defc deck [deck]
   [:.deck
-    [:a (core/turbolink (str "/deck/" (:deck/id deck)))
-     (core/slide (-> deck :deck/content core/->first-slide-only))]
+    [:.deck-slide
+      { :class (str "deck-slide_" (:deck/id deck))}
+      [:a (core/turbolink (str "/deck/" (:deck/id deck)))
+       (core/slide (-> deck :deck/content core/->first-slide-only))]
+      #_[:.deck-shine]]
     (let [spectators (count (:deck/spectators deck))]
       (if (core/presenting? deck)
         [:.deck-subtext.deck-subtext_spectators spectators " watching now"]
@@ -40,22 +43,36 @@
                                   #(= "user-deckatron" (:user/id %))
                                   #(= core/user-id (:user/id %)))]
     [:.page_home
-      [:h1 "Intro to Deckatron"]
-      (decks-list intro)
+      [:.layer.layer_title
+        [:.layer-inner
+          [:.title
+            (map #(vector :span %) "DECK–a–TRON")]
+          [:.subtitle "Slides, presentations, notes"]]]
      
-      [:h1 "LIVE"]
-      (decks-list live)
+      [:.layer
+        [:.layer-inner
+          (decks-list intro)]]
      
-      [:h1 "Your decks"]
-      (decks-list yours
-        [:.deck
-          [:a.slide.slide_new {:href "/create-deck"}
-            [:.slide-inner
-              [:.slide-text "+ Create new deck"]]]
-          [:.deck-subtext]])
+      (when (not-empty live)
+        [:.layer.layer_live
+          [:.layer-inner
+            [:h1 [:.text "L I V E"]]
+            (decks-list live)]])
      
-      [:h1 "Other people’s decks"]
-      (decks-list rest)]))
+      [:.layer.authors-decks
+        [:.layer-inner
+          [:h1 [:.btngroup [:.btn "Your decks"]]]
+          (decks-list yours
+            [:.deck.deck_new
+              [:.deck-slide
+                [:a.slide {:href "/create-deck"}
+                  [:.slide-inner
+                    [:.slide-text "+ Create new deck"]]]]])]]
+     
+      [:.layer
+        [:.layer-inner
+          [:h1 [:.btngroup [:.btn "Other people’s decks"]]]
+          (decks-list rest)]]]))
 
 
 (defmethod core/start-page! :home [_ mount-el]
