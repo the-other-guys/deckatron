@@ -31,7 +31,8 @@
                     "2. Write them in Markdown"
                     "3. Present"
                     "---"
-                    "Note to self: Should lead to **profit**. But how?"
+                    "Note to self: Should lead to **profit**."
+                    "But how?"
                     "==="
                     "# Questions?"])})
 
