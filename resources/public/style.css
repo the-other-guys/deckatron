@@ -53,11 +53,34 @@ body.err { border-top: 2px solid #C33; }
 .slide_43 { height: 30em; }
 
 
-.page_home .deck { display: inline-block; vertical-align: top; }
-.page_home .slide { font-size: 5px; border-width: 2px; }
-.page_home { padding: 60px 30px; }
-.slide_new { border-style: dashed; }
-.deck-subtext { margin: -6px 14px 0; font-size: 13px; color: #999; text-align: right; }
+.deck { display: inline-block; vertical-align: top; margin: 5px 10px; }
+.page_home .slide { border-width: 2px; margin: 0; }
+.deck-slide { position: relative; font-size: 7px; cursor: pointer; border: 4px solid white; border-radius: 1.9em; }
+.deck-slide:hover { top: -1px; }
+
+.page_home { }
+
+.layer-inner { width: 940px; margin: 0 auto; text-align: center; padding: 60px 0 30px; }
+.layer-inner > h1 { margin: -96px 0 50px 10px; text-align: center; }
+.layer-inner > h1 > .btngroup { height: 50px;  }
+.layer-inner > h1 .btn { width: 100%; line-height: 40px; text-align: center; padding: 0 40px; }
+
+.layer { padding: 0 0 60px 0;  }
+.title { display: flex; justify-content: space-around; }
+.title > span { font-size: 48px; }
+.subtitle { text-align: center; letter-spacing: 1px; }
+
+.layer_live { border-top: 2px solid black; background: #F9F9F9; }
+.layer_live .text { background: white; width: 100px; margin: 0 auto; }
+.layer_live .deck-slide { font-size: 12px; }
+
+.authors-decks { background: #EEE; border-top: 2px solid #000; border-bottom: 2px solid #000; }
+
+.deck-slide_deck-welcome { font-size: 10.5px; }
+.deck-slide_deck-cheatsheet { font-size: 7.5px; }
+.deck_new .slide { border-style: dashed; }
+
+.deck-subtext { margin: 1px 14px 0; font-size: 13px; color: #999; text-align: right; }
 .deck-subtext_spectators { text-align: left; }
 .deck-subtext_spectators:before { content: "●"; color: red; margin-right: 5px;  }
 
