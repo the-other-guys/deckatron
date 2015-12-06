@@ -73,7 +73,7 @@
   (let [pages (->> txt
                    p/split-text-into-slides
                    (mapv p/parse))]
-;    (println (str "pages:" (prn-str pages)))
+    (println (str "pages:" pages))
     pages))
 
 

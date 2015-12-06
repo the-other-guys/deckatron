@@ -89,8 +89,9 @@
 
 
 (defn slide->layout [slide]
-;   (print (str "slide: " slide))
-  (let [key    (mapv :p/type slide)
+   (print (str "slide: " slide))
+  (let [ast    (:s/paragraphs slide)
+        key    (mapv :p/type ast)
         layout (get LAYOUTS key default-layout)]
-;     (print (str "layout key: " layout))
-    (layout slide)))
+     (print (str "layout key: " key))
+    (layout ast)))
