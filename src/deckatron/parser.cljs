@@ -150,7 +150,8 @@
 
 (defn parse-string [s]
 ;;   (println (str "parsing string: " s))
-  (->> s parser vec reduce-blocks))
+  (let [ s (str s "\n")]
+    (->> s parser vec reduce-blocks)))
 
 (defn parse [slide]
 ;;   (println (str "parsing slide: " slide))
@@ -316,4 +317,3 @@
 
 
 (run-tests)
-;(.log js/console (vec (parser "# foo + *bar*!\n\n")))
