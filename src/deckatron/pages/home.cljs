@@ -51,9 +51,9 @@
 
 
 (defmethod core/start-page! :home [_ mount-el]
-  (println "Loading decks list")
   ;; TODO watch websocket status, reconnect
   (when (nil? socket)
+    (println "Starting :home page")
     (set! socket
       (doto (js/WebSocket. (str "ws://" js/location.host "/api/decks"))
         (aset "onmessage"
@@ -65,8 +65,11 @@
   (rum/mount (page) mount-el))
 
 
-(defmethod core/stop-page! :home [_]
-  (when socket
-    (.close socket)
-    (set! socket nil)
-    (reset! *decks {})))
+(defmethod core/stop-page! :home [_ next-path]
+  (let [compatible? (= (first next-path) :home)]
+    (when-not compatible?
+      (println "Stopping :home page")
+      (when socket
+        (.close socket)
+        (set! socket nil))
+      (reset! *decks {}))))

@@ -92,7 +92,6 @@
 (rum/defc menu [deck mode]
   (let [author? (core/author? deck)
         spectators (count (:deck/spectators deck))]
-    (print (prn-str deck))
     [:table.menu
       [:tbody
         [:tr
@@ -153,9 +152,9 @@
 
 
 (defmethod core/start-page! :deck [[_ deck-id mode] mount-el]
-  (println "Loading deck" deck-id)
   ;; TODO watch websocket status, reconnect
-  (when-not socket
+  (when (nil? socket)
+    (println "Starting :deck page" deck-id)
     (set! socket
       (doto (js/WebSocket. (str "ws://" js/location.host "/api/deck/" deck-id))
         (aset "onmessage"
@@ -168,12 +167,16 @@
   (rum/mount (deck-page) mount-el))
 
 
-(defmethod core/stop-page! :deck [_]
-  (when socket
-    (.close socket)
-    (set! socket nil))
-  (reset! *server-deck nil)
-  (reset! *pending-deck nil))
+(defmethod core/stop-page! :deck [[_ deck-id] [next-mode next-deck-id]]
+  (let [compatible? (and (= next-mode :deck)
+                         (= next-deck-id deck-id))]
+    (when-not compatible?
+      (println "Stopping :deck page" deck-id)
+      (when socket
+        (.close socket)
+        (set! socket nil))
+      (reset! *server-deck nil)
+      (reset! *pending-deck nil))))
 
 
 (def TEST-CONNECTION-INTERVAL 5000)

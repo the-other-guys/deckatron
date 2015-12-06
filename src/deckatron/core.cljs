@@ -60,7 +60,7 @@
 
 
 (defmulti start-page! (fn [path mount-el] (first path)))
-(defmulti stop-page! (fn [path] (first path)))
+(defmulti stop-page! (fn [path next-path] (first path)))
 
 
 (defn slides [txt]
