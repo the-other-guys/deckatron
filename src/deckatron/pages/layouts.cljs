@@ -3,18 +3,46 @@
     [rum.core :as rum]
     [clojure.string :as str]))
 
+(defn- get-tag [props]
+  :span)
+
+(defn- parse-span [sp]
+  (let [ems (:l/elements sp)]
+      (mapv (fn [%] [(get-tag (:e/types %)) (:e/text %)]) ems)))
+
+(defn- parse-tx [lines]
+  (mapcat parse-span lines))
+
+(defn- parse-li [lines]
+  (mapv (fn [%] [:li (parse-span %)]) lines))
+
+(defn- parse-p [p]
+  (case (:p/type p)
+    :h1 [:h1 (parse-tx (:p/lines p))]
+    :h2 [:h2 (parse-tx (:p/lines p))]
+    :h3 [:h3 (parse-tx (:p/lines p))]
+    :h4 [:h4 (parse-tx (:p/lines p))]
+    :ordered-list [:ol (parse-li (:p/lines p))]
+    :unordered-list [:ul (parse-li (:p/lines p))]
+    [:div (parse-tx (:p/lines p))]
+    )
+  )
+
+(defn- ->html [slide]
+  (map parse-p slide))
+
 (rum/defc default-layout [slide]
     [:.slide
      [:.slide-inner
-      [:.slide-text (str/join slide)]]])
+      [:.slide-text (->html slide)]]])
 
+; e (-> slide first :p/lines first :l/elements first :e/text)
 (rum/defc head-only-layout [slide]
-  (let [t (-> slide first :p/type)
-        e (-> slide first :p/lines first :l/elements first :e/text)]
+  (let [t (-> slide first :p/type)]
     [:.slide
      [:.slide-inner
       [:.slide-text
-       [t e]]]]))
+       [t (->html slide)]]]]))
 
 
 (rum/defc two-headed-centered-layout [slide]
