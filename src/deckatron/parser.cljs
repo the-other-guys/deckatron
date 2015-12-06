@@ -147,8 +147,16 @@
     (for [b blocks] (reduce-block b))
     (reduce-block blocks)))
 
-(defn parse [s]
+
+(defn parse-string [s]
+  (println (str "parsing string: " s))
   (->> s parser vec reduce-blocks))
+
+(defn parse [slide]
+  (println (str "parsing slide: " slide))
+  (let [ast (-> slide :s/text parse-string vec)]
+    (println (str "extracted ast: " ast))
+    (assoc slide :s/paragraphs ast)))
 
 
 (defn split-text-into-slides [t]
@@ -159,12 +167,14 @@
                    (mapv #(clojure.string/split % SLIDES-SEPARATOR)))
         f (fn [[c & ss]]
             [{:s/type :comment :s/text c}
-             (mapv #(into {} {:s/type :slide :s/text %}) ss)])]
-    (->> pages
-         (map f)
-         flatten
-         (remove #(clojure.string/blank? (:s/text %)))
-         vec)))
+             (mapv #(into {} {:s/type :slide :s/text %}) ss)])
+        slides (->> pages
+                   (map f)
+                   flatten
+                   (remove #(clojure.string/blank? (:s/text %)))
+                   vec)]
+    (print (str "split slides:" slides))
+    slides))
 
 ;; TESTS
 
