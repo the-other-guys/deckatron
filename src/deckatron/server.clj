@@ -52,7 +52,6 @@
                                    (println "!!! broadcast:" subject message)
                                    (send-obj! (:chan s) message))))
 
-; TODO consider abstracting away storage + broadcasting behind a single thing
 (defn update-counters-and-broadcast [deck-id user-id]
   (->>
     (storage/update-and-eject-diff! deck-id
@@ -128,8 +127,9 @@
         (let [deck (storage/get-deck deck-id)]
           (send-obj! chan (new-patch-message deck-id (u/diff nil deck))))
 
-        ; TODO fix possbile racing condition (missing diffs between the moments when the
-        ;      initial snapshot was sent and when the subscription was registered
+        ; TODO a possbile racing condition: there could be missing diffs
+        ;      between the moments when the initial snapshot was sent and
+        ;      when the subscription was registered
         (listen deck-id user-id chan)
 
         (update-counters-and-broadcast deck-id user-id)
@@ -155,7 +155,7 @@
 
               ; TODO consider abstracting away storage + broadcasting behind a single thing
               (storage/patch-deck! deck-id patch)
-              (broadcast! deck-id patch-message chan)
+              (broadcast! deck-id patch-message chan) ; don't send back to self (chan)
               (broadcast! :decks  patch-message patch)))))))
 
   (route/resources "/" {:root "public"}))
