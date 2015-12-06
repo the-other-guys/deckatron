@@ -75,7 +75,7 @@
     pages))
 
 (defn ->slides-only [txt]
-  (-> txt ->slides (filter #(= :slide (:s/type %)))))
+  (->> txt ->slides (filter #(= :slide (:s/type %)))))
 
 (defn ->slides-and-notes [txt]
   (->slides txt))
