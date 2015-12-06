@@ -54,7 +54,7 @@
   (map parse-p slide))
 
 (rum/defc notes-layout [ast]
-  [:.note
+  [:.slide.note
    [:.slide-inner
     [:.slide-text (->html ast)]]])
 
