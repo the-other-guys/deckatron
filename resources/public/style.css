@@ -175,4 +175,4 @@ body.err { border-top: 2px solid #C33; }
 .slide h1, .note h1 { margin: 0 0 0.25em 0; font-size: 1.5em;  }
 .slide h2, .note h2 { margin: 0 0 0.25em 0; font-size: 1.3em;  }
 .slide h3, .note h3 { margin: 0 0 0.25em 0; font-size: 1.2em;  }
-.slide ul, .note ul { padding-left: 1em; margin: 0.25em 0; }
+.slide ul, .note ul, .slide ol, .note ol { padding-left: 1em; margin: 0.5em 0; }

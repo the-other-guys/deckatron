@@ -25,12 +25,15 @@
   {:deck/id (u/ssid "deck-")
    :user/id user-id
    :deck/content (str/join "\n"
-                   ["# About me"
+                   ["# Presentation plan"
                     ""
-                    "- a writer"
-                    "- a doctor"
-                    "- a philisopher"
-                    "- a man (or a mouse https://youtu.be/IdnMJ7aB9OU)"])})
+                    "1. Collect my thougths"
+                    "2. Write them in Markdown"
+                    "3. Present"
+                    "---"
+                    "Note to self: Should lead to **profit**. But how?"
+                    "==="
+                    "# Questions?"])})
 
 
 (defn get-deck [deck-id]
