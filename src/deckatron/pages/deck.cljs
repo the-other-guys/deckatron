@@ -62,7 +62,7 @@
 
 
 (rum/defc menu-mode [deck-id text mode]
-  [:a.menu-mode
+  [:a.menu-mode.btn
     (merge { :class (when (= text mode) "menu-mode_selected") }
            (core/turbolink (str "/deck/" deck-id "/" text) true))
     text])
@@ -71,14 +71,14 @@
 (rum/defc menu [deck mode]
   (let [deck-id (:deck/id deck)
         author? (core/author? deck)
-        spectators (count (disj (:deck/spectators deck) core/user-id))]
+        spectators (count (:deck/spectators deck))]
     [:table.menu
       [:tbody
         [:tr
           [:td.td-logo
-            [:a.logo (core/turbolink "/") [:div "⟵"]]]
+            [:a.logo.btngroup (core/turbolink "/") [:.btn "⟵"]]]
           [:td.td-modes
-            [:.menu-modes
+            [:.menu-modes.btngroup
               (when author?
                 (menu-mode deck-id "Edit" mode))
               (menu-mode deck-id "Read" mode)
@@ -89,22 +89,21 @@
          
           [:td.td-theme
             (when author?
-              [:.menu-theme [:div "Theme" [:span {:style {"float" "right"}} "▾"]]])]
+              [:.btngroup.menu-theme [:.btn "Theme" [:span {:style {"float" "right"}} "▾"]]])]
          
 ;;           [:td.td-fork
 ;;             [:.menu-fork [:div "Fork this deck"]]]
           
           [:td.td-stats
-            [:.menu-stats
-              [:div
-                [:.half
-                  (if (pos? spectators)
+            [:.btngroup
+                [:.btn.menu-stats
+                  (if (> spectators 1)
                     (list
                       [:.menu-stats-bullet.menu-stats-bullet_live]
-                      (str spectators " watching live"))
-                    (str (count (:deck/viewed-by deck)) " total views"))]
-                [:.half.fork
-                  [:a {:href (str "/fork-deck/" (:deck/id deck)) :target "_blank"} "Fork this deck"]]]]]]]]))
+                      (str spectators " watching now"))
+                    (str (count (:deck/viewed-by deck)) " total viewers"))]
+                [:.btn.fork
+                  [:a {:href (str "/fork-deck/" (:deck/id deck)) :target "_blank"} "Fork this deck"]]]]]]]))
 
 
 (rum/defc deck-page < rum/reactive [mode]
