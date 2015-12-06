@@ -48,6 +48,7 @@
     (get-deck deck-id)
     (assoc  :user/id user-id)
     (assoc  :deck/id (u/ssid "deck-"))
+    (assoc  :deck/forked-from deck-id)
     (dissoc :deck/viewed-by) ; reset counters
     (dissoc :deck/spectators)
     save-deck!))

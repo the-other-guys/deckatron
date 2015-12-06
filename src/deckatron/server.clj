@@ -12,11 +12,16 @@
 
 ; # Types (please, keep up to date with current implementation)
 ;
-; Deck {:deck/id         <id-string>
-;       :deck/content    <string>
-;       :user/id         <id-string>
-;       :deck/viewed-by  #{<user-ids}
-;       :deck/spectators #{<user-ids}
+; Example ids:  "deck-blgizvpbxilgqy"
+;               "user-blggft0clssqkt"
+;
+;
+; Deck {:deck/id          <deck-id>
+;       :deck/forked-from <deck-id>
+;       :deck/content     <string>
+;       :user/id          <user-id>
+;       :deck/viewed-by   #{<user-ids>}
+;       :deck/spectators  #{<user-ids>}
 ; }
 
 
@@ -162,7 +167,8 @@
                   old             (storage/get-deck deck-id)
                   patch-message   (new-patch-message deck-id patch)]
 
-              (when (not= (:user/id old) user-id)
+              ;; commented for questions to work
+              #_(when (not= (:user/id old) user-id)
                 (u/die "Access denied" { :deck/id deck-id, :user/id user-id }))
 
               (println "Updating" deck-id)
