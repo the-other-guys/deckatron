@@ -36,7 +36,9 @@
   
   (GET "/deck/:id" []
     (response/resource-response "public/index.html"))
-  
+
+  (GET "/deck/:id/:mode" []
+    (response/resource-response "public/index.html"))
   
   ;; redirect to /deck/:id page
   
@@ -46,7 +48,7 @@
           deck-id (:deck/id deck)]
        (println "Created" deck-id)
        { :status  302
-         :headers {"Location" (str "/deck/" deck-id)}}))
+         :headers {"Location" (str "/deck/" deck-id "/Edit")}}))
   
   
   ;; on connect -> { :deck/id ..., :patch ... } (separate msg for each deck)

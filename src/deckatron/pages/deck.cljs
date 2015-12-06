@@ -6,8 +6,7 @@
     [rum.core :as rum]
     [deckatron.core :as core]
     [deckatron.util :as u]
-    [cljs.core.async :refer [put! chan <! >! timeout]]
-    [deckatron.parser :as parser]))
+    [cljs.core.async :refer [put! chan <! >! timeout]]))
 
 
 (enable-console-print!)
@@ -17,21 +16,17 @@
 
 
 (defonce *deck (atom nil))
-(defonce *deck-id (atom nil))
 
 
 (defonce *pending-content (atom nil))
 
 
-(defonce *mode (atom nil))
-
-
-(add-watch *deck ::default-mode
-  (fn [_ _ _ deck]
-    (if (= core/user-id (:user/id deck))
-      (reset! *mode "Edit")
-      (reset! *mode "Read"))
-    (remove-watch *deck ::default-mode)))
+;(add-watch *deck ::default-mode
+;  (fn [_ _ _ deck]
+;    (if (= core/user-id (:user/id deck))
+;      (reset! *mode "Edit")
+;      (reset! *mode "Read"))
+;    (remove-watch *deck ::default-mode)))
 
 
 (defn send! [message]
@@ -57,16 +52,18 @@
 
 
 (rum/defc menu-mode [text mode]
-  (let [selected? (= text mode)]
+  (let [selected? (= text mode)
+        href (core/->deck-href @*deck text)]
     [:.menu-mode
       { :class    (when selected? "menu-mode_selected")
-        :on-click (fn [_] (reset! *mode text)) }
+        :on-click (partial core/fake-navigate-url href) }
       text]))
 
 
 (rum/defc menu [deck mode]
-  (let [author? (= core/user-id (:user/id deck))
+  (let [author? (core/author? deck)
         spectators (count (:deck/spectators deck))]
+    (print (prn-str deck))
     [:table.menu
       [:tbody
         [:tr
@@ -91,11 +88,10 @@
   
 (rum/defc page < rum/reactive []
   (let [deck  (rum/react *deck)
-        mode  (rum/react *mode)
         value (or (rum/react *pending-content)
                   (:deck/content deck))]
     [:.page_deck
-      (menu deck mode)
+      (menu deck (core/->mode))
       [:textarea.editor 
         { :value     value
           :on-change (fn [e]
@@ -108,9 +104,6 @@
 
 
 (defn refresh! [deck-id]
-  (when-not @*deck-id
-    (reset! *deck-id deck-id))
-
   (when socket
     (.close socket)
     (reset! *deck nil))
@@ -135,11 +128,11 @@
     true
     (= 3 (.-readyState socket))))
 
-(go
-  (while true
-    (<! (timeout TEST-CONNECTION-INTERVAL))
-    (if (socket-closed? socket)
-      (do
-        (println (str "connection died, reconnecting with deck-id: " @*deck-id))
-        (refresh! @*deck-id))
-      (println (str "connection is alive, deck-id: " @*deck-id ", socket status: " (.-readyState socket))))))
+;(go
+;  (while true
+;    (<! (timeout TEST-CONNECTION-INTERVAL))
+;    (if (socket-closed? socket)
+;      (do
+;        (println (str "connection died, reconnecting with deck-id: " @*deck-id))
+;        (refresh! ))
+;      (println (str "connection is alive, deck-id: " @*deck-id ", socket status: " (.-readyState socket))))))
