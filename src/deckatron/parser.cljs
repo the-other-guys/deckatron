@@ -180,49 +180,49 @@
 
 
 (deftest test-parse-inline-img
-  (is (= (parse "![kfc gif](http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif)\n\n")
+  (is (= (parse-string "![kfc gif](http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif)\n\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "kfc gif", :e/types #{:image}
                                                    :e/href "http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif"}]}]}])))
 
 (deftest test-parse-url
-  (is (= (parse "[key note](https://www.youtube.com/watch?v=FihU5JxmnBg)\n\n")
+  (is (= (parse-string "[key note](https://www.youtube.com/watch?v=FihU5JxmnBg)\n\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:link}
                                                    :e/href "https://www.youtube.com/watch?v=FihU5JxmnBg"}]}]}])))
 (deftest test-parse-simple
-  (is (= (parse "hsj ajkds ashjdk\n")
+  (is (= (parse-string "hsj ajkds ashjdk\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "hsj ajkds ashjdk", :e/types #{}}]}]}])))
 
 (deftest test-parse-heading-1
-  (is (= (parse "# foo + *bar*!\n\n")
+  (is (= (parse-string "# foo + *bar*!\n\n")
          [{:p/type :h1, :p/lines [{:l/elements [{:e/text "foo + ", :e/types #{}} 
                                   {:e/text "bar", :e/types #{:em}}
                                   {:e/text "!", :e/types #{}}]}]}])))
 
 (deftest test-parse-heading-2
-  (is (= (parse "## foo + bar baz_?\n\n")
+  (is (= (parse-string "## foo + bar baz_?\n\n")
          [{:p/type :h2, :p/lines [{:l/elements [{:e/text "foo + bar baz_?", :e/types #{}}]}]}])))
 
 (deftest test-parse-heading-3
-  (is (= (parse "### just foo\n\n")
+  (is (= (parse-string "### just foo\n\n")
          [{:p/type :h3, :p/lines [{:l/elements [{:e/text "just foo", :e/types #{}}]}]}])))
 
 (deftest test-parse-heading-4
-  (is (= (parse "#### just foo\n\n")
+  (is (= (parse-string "#### just foo\n\n")
          [{:p/type :h4, :p/lines [{:l/elements [{:e/text "just foo", :e/types #{}}]}]}])))
 
 (deftest test-parse-block-w-plain-text
-  (is (= (parse "foo *bar!\n")
+  (is (= (parse-string "foo *bar!\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "foo *bar!", :e/types #{}}]}]}])))
 
 (deftest test-parse-block-w-modified-text
-  (is (= (parse "foo *bar baz* _qux_\n")
+  (is (= (parse-string "foo *bar baz* _qux_\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                   {:e/text "bar baz", :e/types #{:em}}
                                                   {:e/text " ", :e/types #{}}
                                                   {:e/text "qux", :e/types #{:em}}]}]}])))
 
 (deftest test-parse-block-w-nested-modified-text
-  (is (= (parse "foo __*bar baz*__ _qux_.\n")
+  (is (= (parse-string "foo __*bar baz*__ _qux_.\n")
          [{:p/type :text, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                   {:e/text "bar baz", :e/types #{:em :strong}}
                                                   {:e/text " ", :e/types #{}}
@@ -231,10 +231,10 @@
 
 
 (deftest test-parse-2-ordered-lists-w-modified-text
-    (is (= (parse (str "1. foo **bar baz**\n"
-                       "2. foo __bar baz__\n\n"
-                       "1. foo ~bar baz~\n"
-                       "2. foo `bar baz`\n\n"))
+    (is (= (parse-string (str "1. foo **bar baz**\n"
+                              "2. foo __bar baz__\n\n"
+                              "1. foo ~bar baz~\n"
+                              "2. foo `bar baz`\n\n"))
            [{:p/type :ordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                             {:e/text "bar baz", :e/types #{:strong}}]}
                                               {:l/elements [{:e/text "foo ", :e/types #{}}
@@ -245,11 +245,12 @@
                                                             {:e/text "bar baz", :e/types #{:code}}]}]}])))
 
 (deftest test-parse-2-unordered-lists-w-modified-text
-  (is (= (parse (str "- foo *bar baz*\n"
-                     "- foo __bar baz__\n\n"
-                     "- foo -bar baz-\n"
-                     "- foo [bar baz](http://nasa.gov.com/)\n"
-                     "- foo `bar baz`\n\n"))
+  (is (= (parse-string
+           (str "- foo *bar baz*\n"
+                "- foo __bar baz__\n\n"
+                "- foo -bar baz-\n"
+                "- foo [bar baz](http://nasa.gov.com/)\n"
+                "- foo `bar baz`\n\n"))
          [{:p/type :unordered-list, :p/lines [{:l/elements [{:e/text "foo ", :e/types #{}}
                                                                   {:e/text "bar baz", :e/types #{:em}}]}
                                               {:l/elements [{:e/text "foo ", :e/types #{}}
@@ -262,16 +263,18 @@
                                                                   {:e/text "bar baz", :e/types #{:code}}]}]}])))
 
 (deftest test-parse-blockquote
-  (is (= (parse (str "> foo bar baz\n"
-                     "> foo bar baz\n\n"))
+  (is (= (parse-string
+           (str "> foo bar baz\n"
+                "> foo bar baz\n\n"))
          [{:p/type :blockquote, :p/lines [{:l/elements [{:e/text "foo bar baz", :e/types #{}}]}
                                           {:l/elements [{:e/text "foo bar baz", :e/types #{}}]}]}])))
 
 (deftest test-parse-code-block
-  (is (= (parse (str "``` clojure\n"
-                     "(+ 1 2)\n"
-                     "(identity +)\n"
-                     "```\n"))
+  (is (= (parse-string
+           (str "``` clojure\n"
+                "(+ 1 2)\n"
+                "(identity +)\n"
+                "```\n"))
           [{:p/type :code, :p/language "clojure"
                            :p/lines [{:l/elements [{:e/text "(+ 1 2)", :e/types #{}}]}
                                      {:l/elements [{:e/text "(identity +)", :e/types #{}}]}]}])))
@@ -283,9 +286,9 @@
                                       "---\n" "comment2 line1\ncomment2 line2\n"
                                       "===\n" "slide2 line1\nslide2 line2\n"
                                       "===\n" "slide3 line1\nslide3 line2\n"))
-         [{:s/type :comment :s/text "comment1 line1\ncomment1 line2\n"}
+         [{:s/type :notes :s/text "comment1 line1\ncomment1 line2\n"}
           {:s/type :slide :s/text "slide1 line1\nslide1 line2\n"}
-          {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
+          {:s/type :notes :s/text "comment2 line1\ncomment2 line2\n"}
           {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
           {:s/type :slide :s/text "slide3 line1\nslide3 line2\n\n\n"}]))
 
@@ -295,8 +298,8 @@
                                       "===\n" "slide2 line1\nslide2 line2\n"
                                       "===\n" "slide3 line1\nslide3 line2\n"))
          [{:s/type :slide :s/text "slide1 line1\nslide1 line2\n"}
-          {:s/type :comment :s/text "comment1 line1\ncomment1 line2\n"}
-          {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
+          {:s/type :notes :s/text "comment1 line1\ncomment1 line2\n"}
+          {:s/type :notes :s/text "comment2 line1\ncomment2 line2\n"}
           {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
           {:s/type :slide :s/text "slide3 line1\nslide3 line2\n\n\n"}]))
 
@@ -306,8 +309,8 @@
                                    "===\n" "slide2 line1\nslide2 line2\n"
                                    "===\n" "slide3 line1\nslide3 line2\n"))
         [{:s/type :slide :s/text "slide1 line1\nslide1 line2\n"}
-         {:s/type :comment :s/text "comment1 line1\ncomment1 line2\n"}
-         {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
+         {:s/type :notes :s/text "comment1 line1\ncomment1 line2\n"}
+         {:s/type :notes :s/text "comment2 line1\ncomment2 line2\n"}
          {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
          {:s/type :slide :s/text "slide3 line1\nslide3 line2\n\n\n"}])))
 
