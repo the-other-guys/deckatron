@@ -14,7 +14,7 @@
 (defn- get-props [tg]
   (let [props (:e/types tg)]
        (if (contains? props :link) {:href (:e/href tg)}
-         (if (contains? props :image) {:src (:e/href tg) :alt (:e/text tg)} {}))))
+         (if (contains? props :image) {:src (:e/href tg) :alt (:e/text tg) :width "150em"} {}))))
 
 (defn- get-text [tg]
   (let [props (:e/types tg)]
@@ -75,8 +75,7 @@
     [:.slide
      [:.slide-inner
       [:.slide-text
-       [t1 (str "2H: \n" (:e/text e1))]
-       [t2 (:e/text e2)]]]]))
+       (->html slide)]]]))
 
 
 (def LAYOUTS
