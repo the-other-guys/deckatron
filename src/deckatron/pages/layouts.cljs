@@ -1,20 +1,34 @@
 (ns deckatron.pages.layouts
   (:require
     [rum.core :as rum]
+    [deckatron.util :as u]
     [clojure.string :as str]))
 
 (defn- get-tag [props]
-  :span)
+  (if (contains? props :link) :a
+    (if (contains? props :strong) :strong
+      (if (contains? props :em) :em
+       (if (contains? props :image) :img
+         :span)))))
+
+(defn- get-props [tg]
+  (let [props (:e/types tg)]
+       (if (contains? props :link) {:href (:e/href tg)}
+         (if (contains? props :image) {:src (:e/href tg) :alt (:e/text tg)} {}))))
+
+(defn- get-text [tg]
+  (let [props (:e/types tg)]
+       (if (contains? props :image) nil (:e/text tg))))
 
 (defn- parse-span [sp]
   (let [ems (:l/elements sp)]
-      (mapv (fn [%] [(get-tag (:e/types %)) (:e/text %)]) ems)))
+      (map (fn [%] [(get-tag (:e/types %)) (get-props %) (get-text %)]) ems)))
 
 (defn- parse-tx [lines]
-  (mapcat parse-span lines))
+  (map parse-span lines))
 
 (defn- parse-li [lines]
-  (map (fn [%] [:li (vec (flatten (parse-span %)))]) lines))
+  (map (fn [%] [:li (parse-span %)]) lines))
 
 (defn- parse-p [p]
   (case (:p/type p)
@@ -42,7 +56,7 @@
     [:.slide
      [:.slide-inner
       [:.slide-text
-       [t (->html slide)]]]]))
+       (->html slide)]]]))
 
 
 (rum/defc two-headed-centered-layout [slide]
