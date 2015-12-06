@@ -9,6 +9,10 @@
 
 (enable-console-print!)
 
+(def afk-timeout 500)
+
+(defonce *afk-timer (atom nil))
+
 (rum/defc edit-page < rum/reactive [*deck]
   (let [deck    (rum/react *deck)
         content (:deck/content deck)
@@ -25,7 +29,13 @@
                        :height (str height "px") }
           :value     content
           :on-change (fn [e]
-                       (swap! *deck assoc :deck/content (.. e -target -value))) }]
+                       (swap! *afk-timer (fn [t]
+                                           (js/clearTimeout t)
+                                           (js/setTimeout
+                                             (fn []
+                                               (swap! *deck assoc :deck/content (.. e -target -value))
+                                               (reset! *afk-timer nil))
+                                            afk-timeout))))}]
                                                   
       
       [:.slides
