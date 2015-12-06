@@ -36,12 +36,14 @@
                                                (swap! *deck assoc :deck/content (.. e -target -value))
                                                (reset! *afk-timer nil))
                                             afk-timeout))))}]
-                                                  
-      
       [:.slides
         {  :class (:deck/theme deck "default")
            :style { :width  (str width "px")
                    :height (str height "px")
                    :font-size (str (u/width->font-size width) "px") } }
-        (for [slide (core/->slides-only content)]
-          (core/slide slide))]]))
+        (for [slide (core/->slides-and-notes content)]
+          (core/slide slide))
+       
+        (when-let [id (:deck/forked-from deck)]
+          [:.note { :style { "text-align" "center" } }
+            [:h2 "Forked from " [:a (core/turbolink (str "/deck/" id)) "this deck"]]])]]))

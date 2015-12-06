@@ -52,7 +52,7 @@
           (let [old @*server-deck
                 new @*pending-deck]
             (when (not= old new)
-              (println "Sending delta" (u/diff old new))
+;;               (println "Sending delta" (u/diff old new))
               (send! { :deck/id (:deck/id old)
                        :patch   (u/diff old new) }))
             ;; after we sent patch, we apply it locally
@@ -146,7 +146,7 @@
 
 ;; When patch comes from server
 (defn on-server-push [patch]
-  (println "Server push:" patch)
+;;   (println "Server push:" patch)
   ;; Calculating what changes have we accumulated up to this point
   (let [delta (u/diff @*server-deck @*pending-deck)]
     ;; We apply it to confirmed deck first

@@ -53,7 +53,7 @@ body.err { border-top: 2px solid #C33; }
 
 
 .slide, .note { display: block; width: 40em; height: 22.5em; margin: 2em; border-radius: 1.5em; white-space: pre-wrap; word-break: break-word; overflow: hidden; padding: 2em; text-align: left; vertical-align: top; }
-.slide a { text-decoration: underline; }
+.slide  a, .note a { text-decoration: underline; }
 
 .note { height: auto; }
 
@@ -86,7 +86,9 @@ body.err { border-top: 2px solid #C33; }
 
 .deck-slide_deck-welcome { font-size: 10.5px; }
 .deck-slide_deck-cheatsheet { font-size: 7.5px; }
+
 .deck_new .slide { border-style: dashed; }
+.deck_new .slide-inner { display: flex; align-items: center; justify-content: center; }
 
 .deck-subtext { margin: 1px 14px 0; font-size: 13px; color: #999; text-align: right; }
 .deck-subtext_spectators { text-align: left; }
@@ -120,31 +122,31 @@ body.err { border-top: 2px solid #C33; }
 /* themes */
 
 .default .slide { border: 0.3em solid black; background: white; color: black; }
-.default .slide h1, .default .slide h2, .default .slide em, .default .slide strong, .default .slide a { color: #c33; }
+.default .slide h1, .default .slide h2, .default .slide em, .default .slide strong, .default .slide a, .default .note a { color: #c33; }
 
 .blue_purple .slide { border: none; background: linear-gradient(to bottom, #5B06F7 0%, #721FF4 100%); color: white; }
-.blue_purple .slide h1, .blue_purple .slide h2, .blue_purple .slide em, .blue_purple .slide strong, .blue_purple .slide a { color: #DE97DF; }
+.blue_purple .slide h1, .blue_purple .slide h2, .blue_purple .slide em, .blue_purple .slide strong, .blue_purple .slide a, .blue_purple .note a { color: #DE97DF; }
 
 .pelorous .slide { border: none; background: linear-gradient(to bottom, #79D1D3 0%, #2C9EBE 100%); color: white; }
-.pelorous .slide h1, .pelorous .slide h2, .pelorous .slide em, .pelorous .slide strong, .pelorous .slide a { color: #C53666; }
+.pelorous .slide h1, .pelorous .slide h2, .pelorous .slide em, .pelorous .slide strong, .pelorous .slide a, .pelorous .note a { color: #C53666; }
 
 .peridot .slide { border: none; background: #E0E500; color: black; }
-.peridot .slide h1, .peridot .slide h2, .peridot .slide em, .peridot .slide strong, .peridot .slide a { color: #39C1C8; }
+.peridot .slide h1, .peridot .slide h2, .peridot .slide em, .peridot .slide strong, .peridot .slide a, .peridot .note a { color: #39C1C8; }
 
 .loulu .slide { border: none; background: #4D2345; color: white; }
-.loulu .slide h1, .loulu .slide h2, .loulu .slide em, .loulu .slide strong, .loulu .slide a { color: #ECCC40; }
+.loulu .slide h1, .loulu .slide h2, .loulu .slide em, .loulu .slide strong, .loulu .slide a, .loulu .note a { color: #ECCC40; }
 
 .cardinal .slide { border: none; background: #C12240; color: white; }
-.cardinal .slide h1, .cardinal .slide h2, .cardinal .slide em, .cardinal .slide strong, .cardinal .slide a { color: #3A0D29; }
+.cardinal .slide h1, .cardinal .slide h2, .cardinal .slide em, .cardinal .slide strong, .cardinal .slide a, .cardinal .note a { color: #3A0D29; }
 
 .starship .slide { border: none; background: linear-gradient(to bottom, #E8FA39 0%, #9DE34F 100%); color: black; }
-.starship .slide h1, .starship .slide h2, .starship .slide em, .starship .slide strong, .starship .slide a { color: #C31B3D; }
+.starship .slide h1, .starship .slide h2, .starship .slide em, .starship .slide strong, .starship .slide a, .starship .note a { color: #C31B3D; }
 
 .viola .slide { border: none; background: linear-gradient(to bottom, #FCC5D3 0%, #D081AE 100%); color: black; }
-.viola .slide h1, .viola .slide h2, .viola .slide em, .viola .slide strong, .viola .slide a { color: #811C2E; }
+.viola .slide h1, .viola .slide h2, .viola .slide em, .viola .slide strong, .viola .slide a, .viola .note a { color: #811C2E; }
 
 .wisteria .slide { border: none; background: linear-gradient(to bottom, #D4A7D2 0%, #94BCFA 100%); color: black; }
-.wisteria .slide h1, .wisteria .slide h2, .wisteria .slide em, .wisteria .slide strong, .wisteria .slide a { color: #4B4A94; }
+.wisteria .slide h1, .wisteria .slide h2, .wisteria .slide em, .wisteria .slide strong, .wisteria .slide a, .wisteria .note a { color: #4B4A94; }
 
 
 /* questions */
