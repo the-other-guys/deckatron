@@ -101,7 +101,7 @@
          :headers {"Location" (str "/deck/" deck-id "/Edit")}}))
 
   (GET "/fork-deck/:from-deck-id" [from-deck-id :as req]
-    (let [new-deck (storage/fork-deck! from-deck-id)]
+    (let [new-deck (storage/fork-deck! from-deck-id (:user/id req))]
       {:status 302
        :headers {"Location" (str "/deck/" (:deck/id new-deck) "/Edit")}}))
 

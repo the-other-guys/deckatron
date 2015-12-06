@@ -68,6 +68,37 @@
     text])
 
 
+(rum/defc theme-preview [name class selected]
+  [:.slide-preview
+    { :class [class (when (= class selected) "slide-preview_selected")]
+      :on-click (fn [e] (swap! *pending-deck assoc :deck/theme class)) }
+    [:.slide
+      [:span "Hello " [:em "world!"]]]
+    [:.theme-name name]])
+
+
+(rum/defcs themes-button < (rum/local false ::popup) [{*popup ::popup} deck]
+  [:td.td-theme
+    (when (core/author? deck)
+      [:.btngroup.menu-theme
+        { :on-click (fn [e] (swap! *popup not)) }
+        [:.btn "Theme" [:span {:style {"float" "right"}} (if @*popup "▴" "▾")]]])
+    (when @*popup
+      (list
+        [:.overlay { :on-click (fn [e] (reset! *popup false)) }]
+        [:.theme-popup
+          (for [[name class] [["Default"     "default"]
+                              ["Blue Purple" "blue_purple"]
+                              ["Pelorous"    "pelorous"]
+                              ["Peridot"     "peridot"]
+                              ["Loulu"       "loulu"]
+                              ["Cardinal"    "cardinal"]
+                              ["Starship"    "starship"]
+                              ["Viola"       "viola"]
+                              ["Wisteria"    "wisteria"]]]
+            (theme-preview name class (:deck/theme deck "default")))]))])
+
+
 (rum/defc menu [deck mode]
   (let [deck-id (:deck/id deck)
         author? (core/author? deck)
@@ -77,6 +108,7 @@
         [:tr
           [:td.td-logo
             [:a.logo.btngroup (core/turbolink "/") [:.btn "⟵"]]]
+         
           [:td.td-modes
             [:.menu-modes.btngroup
               (when author?
@@ -87,12 +119,7 @@
                 (when (core/presenting? deck)
                   (menu-mode deck-id "Spectate" mode)))]]
          
-          [:td.td-theme
-            (when author?
-              [:.btngroup.menu-theme [:.btn "Theme" [:span {:style {"float" "right"}} "▾"]]])]
-         
-;;           [:td.td-fork
-;;             [:.menu-fork [:div "Fork this deck"]]]
+          (themes-button deck)
           
           [:td.td-stats
             [:.btngroup

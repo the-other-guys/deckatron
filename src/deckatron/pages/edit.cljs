@@ -29,8 +29,9 @@
                                                   
       
       [:.slides
-        { :style { :width  (str width "px")
+        {  :class (:deck/theme deck "default")
+           :style { :width  (str width "px")
                    :height (str height "px")
                    :font-size (str (u/width->font-size width) "px") } }
-        (for [slide (core/->slides-and-notes content)]
+        (for [slide (core/->slides-only content)]
           (core/slide slide))]]))

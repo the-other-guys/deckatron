@@ -4,25 +4,30 @@
     [deckatron.util :as u]
     [clojure.string :as str]))
 
-(defn- get-tag [props]
-  (if (contains? props :link) :a
-    (if (contains? props :strong) :strong
-      (if (contains? props :em) :em
-       (if (contains? props :image) :img
-         :span)))))
+(defn tg->html [tg]
+  (let [types (:e/types tg)
+        text  (:e/text tg)]
+    (cond
+      (contains? types :link)   (if-let [youtube-id (second (re-find #"www.youtube.com/watch\?v=(.+)" (:e/href tg)))]
+                                  ; TODO extract URL parts: host name and "v" argument
+                                  [:iframe{ :style {:width "40em"
+                                                    :height "22.5em"}
+                                            :src            (str "https://www.youtube.com/embed/" youtube-id)
+                                            :frameborder     0
+                                            :allowfullscreen true}]
+                                  [:a      {:href (:e/href tg)} text])
 
-(defn- get-props [tg]
-  (let [props (:e/types tg)]
-       (if (contains? props :link) {:href (:e/href tg)}
-         (if (contains? props :image) {:src (:e/href tg) :alt (:e/text tg) :width "150em"} {}))))
+      (contains? types :strong) [:strong {} text]
+      (contains? types :em)     [:em {} text]
 
-(defn- get-text [tg]
-  (let [props (:e/types tg)]
-       (if (contains? props :image) nil (:e/text tg))))
+      (contains? types :image)  [:img {:src   (:e/href tg)
+                                       :alt   text
+                                       :width "150em"}]
+
+      :else                     [:span {} text])))
 
 (defn- parse-span [sp]
-  (let [ems (:l/elements sp)]
-      (map (fn [%] [(get-tag (:e/types %)) (get-props %) (get-text %)]) ems)))
+  (map tg->html (:l/elements sp)))
 
 (defn- parse-tx [lines]
   (map parse-span lines))
@@ -54,15 +59,15 @@
   (map parse-p slide))
 
 (rum/defc notes-layout [ast]
-  [:.slide.note
-   [:.slide-inner
-    [:.slide-text (->html ast)]]])
+  [:.note
+    [:.note-inner
+      (->html ast)]])
 
 
 (rum/defc default-layout [slide]
-    [:.slide
-     [:.slide-inner
-      [:.slide-text (->html slide)]]])
+  [:.slide
+   [:.slide-inner
+    [:.slide-text (->html slide)]]])
 
 ; e (-> slide first :p/lines first :l/elements first :e/text)
 (rum/defc head-only-layout [slide]
@@ -98,12 +103,12 @@
 
 
 (defn- ->layout [slide]
-  (print (str "slide: " slide))
+  ;;   (print (str "slide: " slide))
   (if (= :notes (:s/type slide))
     notes-layout
     (let [key    (mapv :p/type (:s/paragraphs slide))
           layout (get LAYOUTS key default-layout)]
-      (print (str "layout key: " key))
+      ;;       (print (str "layout key: " key))
       layout)))
 
 

@@ -71,7 +71,7 @@
   (let [pages (->> txt
                    p/split-text-into-slides
                    (mapv p/parse))]
-    (println (str "pages:" pages))
+;;     (println (str "pages:" pages))
     pages))
 
 (defn ->slides-only [txt]

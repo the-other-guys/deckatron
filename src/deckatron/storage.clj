@@ -43,10 +43,11 @@
     (u/obj->transit deck))
   deck)
 
-(defn fork-deck! [deck-id]
+(defn fork-deck! [deck-id user-id]
   (->
     (get-deck deck-id)
-    (assoc :deck/id (u/ssid "deck-"))
+    (assoc  :user/id user-id)
+    (assoc  :deck/id (u/ssid "deck-"))
     (dissoc :deck/viewed-by) ; reset counters
     (dissoc :deck/spectators)
     save-deck!))
