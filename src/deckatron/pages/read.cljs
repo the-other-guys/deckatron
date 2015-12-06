@@ -16,7 +16,8 @@
                    600)]
     [:.page_deck-read
       [:.slides
-        { :style { :width  (str width "px")
+        { :class (:deck/theme deck "default")
+          :style { :width  (str width "px")
                    :font-size (str (u/width->font-size width) "px") } }
         (for [slide (core/->slides-and-notes (:deck/content deck))]
           (core/slide slide))]]))

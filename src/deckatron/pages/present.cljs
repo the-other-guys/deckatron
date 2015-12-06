@@ -64,7 +64,8 @@
         w      (min width max-w)
         h      (/ w core/aspect)]
     [:.page_deck-present
-      { :style { :padding-top  (-> (- height h) (/ 2) (str "px"))
+      { :class (:deck/theme deck "default")
+        :style { :padding-top  (-> (- height h) (/ 2) (str "px"))
                  :padding-left (-> (- width w) (/ 2) (str "px"))
                  :font-size    (str (u/width->font-size w false) "px")
                  :height       height} }
@@ -87,6 +88,7 @@
                  :height       height} }
       (when-let [content (:deck/content deck)]
         [:.slides
+         { :class (:deck/theme deck "default") }
          (let [slides (core/->slides-only content)
                slide (nth slides (:presenter-slide deck) nil)]
            (core/slide slide))])]))

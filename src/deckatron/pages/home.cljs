@@ -19,7 +19,8 @@
 (rum/defc deck [deck]
   [:.deck
     [:.deck-slide
-      { :class (str "deck-slide_" (:deck/id deck))}
+      { :class [ (str "deck-slide_" (:deck/id deck))
+                 (:deck/theme deck "default") ] }
       [:a (core/turbolink (str "/deck/" (:deck/id deck)))
        (core/slide (-> deck :deck/content core/->first-slide-only))]
       #_[:.deck-shine]]
