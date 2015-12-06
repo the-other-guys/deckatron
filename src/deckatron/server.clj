@@ -34,11 +34,11 @@
 ;              }}
 (def *topic->subscribers (atom {}))
 
-(defn listen [topic user-id chan]
+(defn listen [topic chan user-id]
   (swap! *topic->subscribers update topic
     #(conj (or % #{}) {:user-id user-id :chan chan})))
 
-(defn unlisten [topic user-id chan]
+(defn unlisten [topic chan user-id]
   (swap! *topic->subscribers
     (fn [m]
       (let [new-chans (disj (get m topic) {:user-id user-id :chan chan})]
@@ -104,12 +104,12 @@
         (doseq [deck (storage/all-decks)]
           (send-obj! chan (new-patch-message (:deck/id deck) (u/diff nil deck))))
 
-        (listen :decks user-id chan)
+        (listen :decks chan user-id)
 
         (httpkit/on-close chan
           (fn [status]
             (println "Disconnected" user-id "from ALL")
-            (unlisten :decks user-id chan)))
+            (unlisten :decks chan user-id)))
         ;; nothing to receive
         )))
 
@@ -130,14 +130,14 @@
         ; TODO a possbile racing condition: there could be missing diffs
         ;      between the moments when the initial snapshot was sent and
         ;      when the subscription was registered
-        (listen deck-id user-id chan)
+        (listen deck-id chan user-id)
 
         (update-counters-and-broadcast deck-id user-id)
 
         (httpkit/on-close chan
           (fn [status]
             (println "Disconnected" user-id "from" deck-id)
-            (unlisten deck-id user-id chan)
+            (unlisten deck-id chan user-id)
 
             (update-counters-and-broadcast deck-id user-id)))
 
