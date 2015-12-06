@@ -14,7 +14,7 @@
   (mapcat parse-span lines))
 
 (defn- parse-li [lines]
-  (mapv (fn [%] [:li (parse-span %)]) lines))
+  (map (fn [%] [:li (vec (flatten (parse-span %)))]) lines))
 
 (defn- parse-p [p]
   (case (:p/type p)

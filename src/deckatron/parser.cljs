@@ -176,7 +176,7 @@
 
 (defn split-text-into-slides [t]
   "by default, top page - is a slide, not comment, even if there is no separator."
-  (clojure.string/split (string/join [t "\n"]) SLIDES-SEPARATOR))
+  (clojure.string/split (string/join [t "\n\n"]) SLIDES-SEPARATOR))
 
 ;  (let [t (str "===\n" t)
 ;        pages (->> (clojure.string/split t COMMENTS-SEPARATOR)
