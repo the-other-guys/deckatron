@@ -11,3 +11,6 @@
   (condp re-matches js/window.location.pathname
     #"/"              (home/refresh!)
     #"/deck/(.+)/(.+)" :>> (fn [[_ deck-id mode]] (deck/refresh! deck-id))))
+
+
+(set! js/window.onpopstate (fn [_] (refresh)))

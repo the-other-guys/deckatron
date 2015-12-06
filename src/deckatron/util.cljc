@@ -87,3 +87,7 @@
         minus (patch-delete minus)
         plus  (patch-add plus)))))
 
+
+(defn width->font-size
+  ([w] (width->font-size w true))
+  ([w margin?] (-> w (/ (if margin? 440 400)) (* 10))))

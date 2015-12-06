@@ -1,12 +1,16 @@
 (ns deckatron.core
   (:require
-    [deckatron.app :as app]))
+    ;[deckatron.app :as app]
+    [rum.core :as rum]
+    [clojure.string :as str]))
 
-(def user-id (second (re-find #"user-id=([a-z0-9\-]+)" js/document.cookie)))
 
 (def user-deckatron "user-deckatron")
 
 (enable-console-print!)
+
+
+(def user-id (second (re-find #"user-id=([a-z0-9\-]+)" js/document.cookie)))
 (println ":user/id" user-id)
 
 (defn ->deck-id []
@@ -29,6 +33,35 @@
   ([deck mode] (str "/deck/" (:deck/id deck) "/" mode)))
 
 (defn fake-navigate-url [href e]
-  (.preventDefault e)
+  (when e
+    (.preventDefault e))
   (js/history.pushState nil nil href)
-  (app/refresh))
+  (js/window.onpopstate))
+
+(def aspect (/ 16 9))
+
+(defonce *window-width (atom 0))
+(defonce *window-height (atom 0))
+
+
+(set! js/window.onresize
+  (fn [_]
+    (let [w js/document.documentElement.clientWidth
+          h js/document.documentElement.clientHeight]
+      (when (not= @*window-width w)
+        (reset! *window-width w))
+      (when (not= @*window-height h)
+        (reset! *window-height h)))))
+
+
+(js/window.onresize)
+
+
+(defn slides [content]
+  (str/split content #"(?:---|===)"))
+
+
+(rum/defc slide [slide]
+  [:.slide
+    [:.slide-inner
+      [:.slide-text (str/trim slide)]]])
