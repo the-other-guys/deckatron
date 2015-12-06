@@ -50,21 +50,23 @@
         (remove #(#{core/user-id core/user-deckatron} (:user/id %)) decks))]))
 
 
-(defn refresh! []
-  (when socket
-    (.close socket)
-    (reset! *decks {}))
-
+(defmethod core/start-page! :home [_ mount-el]
   (println "Loading decks list")
   ;; TODO watch websocket status, reconnect
-  (set! socket
-    (doto (js/WebSocket. (str "ws://" js/location.host "/api/decks"))
-      (aset "onmessage"
-        (fn [payload]
-          (let [data (u/transit->obj (.-data payload))]
-            (println "Received:" data)
-            (swap! *decks update (:deck/id data) u/patch (:patch data)))))))
+  (when (nil? socket)
+    (set! socket
+      (doto (js/WebSocket. (str "ws://" js/location.host "/api/decks"))
+        (aset "onmessage"
+          (fn [payload]
+            (let [data (u/transit->obj (.-data payload))]
+              (println "Received:" data)
+              (swap! *decks update (:deck/id data) u/patch (:patch data))))))))
   
-  (rum/mount (page) (js/document.getElementById "app")))
+  (rum/mount (page) mount-el))
 
 
+(defmethod core/stop-page! :home [_]
+  (when socket
+    (.close socket)
+    (set! socket nil)
+    (reset! *decks {})))

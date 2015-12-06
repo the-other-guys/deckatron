@@ -14,7 +14,7 @@
     [:.slide
      [:.slide-inner
       [:.slide-text
-       [tag (str "I am head-only layout:\n" (:e/text e))]]]]))
+       [t (str "1H: " (:e/text e))]]]]))
 
 
 (rum/defc two-headed-centered-layout [slide]
@@ -25,7 +25,7 @@
     [:.slide
      [:.slide-inner
       [:.slide-text
-       [t1 (str "I am two-headed layout:\n" (:e/text e1))]
+       [t1 (str "2H: \n" (:e/text e1))]
        [t2 (:e/text e2)]]]]))
 
 
@@ -43,8 +43,8 @@
 
 
 (defn slide->layout [slide]
-  (print (str "slide: " slide))
+;;   (print (str "slide: " slide))
   (let [key    (mapv :p/type (:s/paragraphs slide))
         layout (get LAYOUTS key default-layout)]
-    (print (str "layout key: " key))
+;;     (print (str "layout key: " key))
     (layout slide)))

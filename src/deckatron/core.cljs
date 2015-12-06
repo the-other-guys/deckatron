@@ -4,7 +4,7 @@
     [rum.core :as rum]
     [clojure.string :as str]
     [deckatron.parser :as p]
-    [deckatron.pages.layouts :as L]))
+    [deckatron.pages.layouts :as layouts]))
 
 
 (def user-deckatron "user-deckatron")
@@ -59,18 +59,23 @@
 (js/window.onresize)
 
 
+(defmulti start-page! (fn [path mount-el] (first path)))
+(defmulti stop-page! (fn [path] (first path)))
+
+
 (defn slides [txt]
-  (let [pages (->> txt
+  (str/split txt #"(?:---|===)")
+  #_(let [pages (->> txt
                    p/split-text-into-slides
                    (mapv p/parse-slide))]
-    (println (str "pages:" (prn-str pages)))
+;;     (println (str "pages:" (prn-str pages)))
     pages))
 
 
-(defn slide [s]
-  (L/slide->layout s))
+;; (defn slide [s]
+;;   (layouts/slide->layout s))
 
-;(rum/defc slide [slide]
-;  [:.slide
-;    [:.slide-inner
-;      [:.slide-text (str/trim (:s/text slide))]]])
+(rum/defc slide [slide]
+  [:.slide
+    [:.slide-inner
+      [:.slide-text (str/trim slide)]]])

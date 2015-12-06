@@ -152,28 +152,28 @@
     (reset! *pending-deck (u/patch @*server-deck delta))))
 
 
-(defonce *deck-id (atom nil))
-
-
-(defn refresh! [deck-id]
-  (when socket
-    (.close socket)
-    (reset! *server-deck nil)
-    (reset! *pending-deck nil))
-  
+(defmethod core/start-page! :deck [[_ deck-id mode] mount-el]
   (println "Loading deck" deck-id)
   ;; TODO watch websocket status, reconnect
-  (set! socket
-    (doto (js/WebSocket. (str "ws://" js/location.host "/api/deck/" deck-id))
-      (aset "onmessage"
-        (fn [payload]
-          (-> (.-data payload)
-              (u/transit->obj )
-              :patch
-              (on-server-push))))))
-           
+  (when-not socket
+    (set! socket
+      (doto (js/WebSocket. (str "ws://" js/location.host "/api/deck/" deck-id))
+        (aset "onmessage"
+          (fn [payload]
+            (-> (.-data payload)
+                (u/transit->obj )
+                :patch
+                (on-server-push)))))))
 
-  (rum/mount (deck-page) (js/document.getElementById "app")))
+  (rum/mount (deck-page) mount-el))
+
+
+(defmethod core/stop-page! :deck [_]
+  (when socket
+    (.close socket)
+    (set! socket nil))
+  (reset! *server-deck nil)
+  (reset! *pending-deck nil))
 
 
 (def TEST-CONNECTION-INTERVAL 5000)
