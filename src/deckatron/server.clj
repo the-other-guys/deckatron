@@ -12,12 +12,16 @@
 
 ; # Types (please, keep up to date with current implementation)
 ;
-; Deck {:deck/id       <id-string>
-;       :deck/content  <string>
-;       :user/id       <id-string>}
+; Deck {:deck/id         <id-string>
+;       :deck/content    <string>
+;       :user/id         <id-string>
+;       :deck/viewed-by  #{<user-ids}
+;       :deck/spectators #{<user-ids}
+; }
 
 
 (defn send-obj! [chan o]
+  (println ">>> sent:     " o)
   (httpkit/send! chan (u/obj->transit o)))
 
 (defn new-patch-message [deck-id patch]
@@ -25,29 +29,42 @@
    :patch   patch})
 
 ;; broadcasting
-(def *subject->chans (atom {})) ; Object -> #{Channel}
+(def *subject->subscribers (atom {})) ; Object -> #{ {:user-id <id-string> :chan Channel} }
 
-(defn listen [subject chan]
-  (println "+++ " subject chan)
-  (swap! *subject->chans update subject #(conj (or % #{}) chan)))
+(defn listen [subject user-id chan]
+  (println "+++ listen:   " subject user-id)
+  (swap! *subject->subscribers update subject
+    #(conj (or % #{}) {:user-id user-id :chan chan})))
 
-(defn unlisten [subject chan]
-  (println "--- " subject chan)
-  (swap! *subject->chans
+(defn unlisten [subject user-id chan]
+  (println "--- unlisten: " subject user-id)
+  (swap! *subject->subscribers
     (fn [m]
-      (let [new-chans (disj (get m subject) chan)]
+      (let [new-chans (disj (get m subject) {:user-id user-id :chan chan})]
         (if (empty? new-chans)
           (dissoc m subject)
           (assoc  m subject new-chans))))))
 
 (defn broadcast!
   ([subject message]             (broadcast! subject message nil))
-  ([subject message ignore-chan] (doseq [chan (get (deref *subject->chans) subject)
-                                        :when (not= chan ignore-chan)]
-                                   (println "!!! " chan message)
-                                   (send-obj! chan message))))
+  ([subject message ignore-chan] (doseq [s (get (deref *subject->subscribers) subject)
+                                        :when (not= ignore-chan (:chan s))]
+                                   (println "!!! broadcast:" subject message)
+                                   (send-obj! (:chan s) message))))
 
-
+; TODO consider abstracting away storage + broadcasting behind a single thing
+(defn update-counters-and-broadcast [deck-id user-id]
+  (->>
+    (storage/update-and-eject-diff! deck-id
+      (fn [deck]
+        (-> deck
+          (update :deck/viewed-by  #(conj (or % #{}) user-id))
+          (assoc  :deck/spectators (->> (get (deref *subject->subscribers) deck-id)
+                                     (map :user-id)
+                                     distinct
+                                     set)))))
+    (new-patch-message deck-id)
+    (broadcast! deck-id)))
 
 (defroutes routes
 
@@ -88,12 +105,12 @@
         (doseq [deck (storage/all-decks)]
           (send-obj! chan (new-patch-message (:deck/id deck) (u/diff nil deck))))
 
-        (listen :decks chan)
+        (listen :decks user-id chan)
 
         (httpkit/on-close chan
           (fn [status]
             (println "Disconnected" user-id "from ALL")
-            (unlisten :decks chan)))
+            (unlisten :decks user-id chan)))
         ;; nothing to receive
         )))
 
@@ -111,12 +128,18 @@
         (let [deck (storage/get-deck deck-id)]
           (send-obj! chan (new-patch-message deck-id (u/diff nil deck))))
 
-        (listen deck-id chan)
+        ; TODO fix possbile racing condition (missing diffs between the moments when the
+        ;      initial snapshot was sent and when the subscription was registered
+        (listen deck-id user-id chan)
+
+        (update-counters-and-broadcast deck-id user-id)
 
         (httpkit/on-close chan
           (fn [status]
             (println "Disconnected" user-id "from" deck-id)
-            (unlisten deck-id chan)))
+            (unlisten deck-id user-id chan)
+
+            (update-counters-and-broadcast deck-id user-id)))
 
         (httpkit/on-receive chan
           (fn [bytes]
@@ -129,8 +152,9 @@
                 (u/die "Access denied" { :deck/id deck-id, :user/id user-id }))
 
               (println "Updating" deck-id)
-              (storage/update-deck! deck-id patch)
 
+              ; TODO consider abstracting away storage + broadcasting behind a single thing
+              (storage/patch-deck! deck-id patch)
               (broadcast! deck-id patch-message chan)
               (broadcast! :decks  patch-message patch)))))))
 

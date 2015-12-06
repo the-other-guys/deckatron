@@ -21,6 +21,18 @@
   (spit f content))
 
 
+(defn new-deck [user-id]
+  {:deck/id (u/ssid "deck-")
+   :user/id user-id
+   :deck/content (str/join "\n"
+                   ["# About me"
+                    ""
+                    "- a writer"
+                    "- a doctor"
+                    "- a philisopher"
+                    "- a man (or a mouse https://youtu.be/IdnMJ7aB9OU)"])})
+
+
 (defn get-deck [deck-id]
   (-> (deck-file deck-id) slurp u/transit->obj))
 
@@ -32,28 +44,24 @@
   deck)
 
 
-(defn new-deck [user-id]
-  {:deck/id (u/ssid "deck-")
-   :user/id user-id
-   :deck/content (str/join "\n"
-                          ["# About me"
-                           ""
-                           "- a writer"
-                           "- a doctor"
-                           "- a philisopher"
-                           "- a man (or a mouse https://youtu.be/IdnMJ7aB9OU)"])})
-
-
 (defn create-deck! [user-id]
   (let [deck (new-deck user-id)]
     (save-deck! deck)))
 
 
-(defn update-deck! [deck-id patch]
+(defn patch-deck! [deck-id patch]
   ;; TODO verify deck hash?
   (let [old (get-deck deck-id)
         new (u/patch old patch)]
     (save-deck! new)))
+
+
+(defn update-and-eject-diff! [deck-id f]
+  (let [old  (get-deck deck-id)
+        new  (f old)
+        diff (u/diff old new)]
+    (save-deck! new)
+    diff))
 
 
 (defn all-decks []
