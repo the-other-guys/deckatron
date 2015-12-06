@@ -149,20 +149,20 @@ body.err { border-top: 2px solid #C33; }
 
 /* questions */
 
-.q-icon { position: absolute; right: 50px; bottom: 50px; background: black; border: 2px solid white; padding: 2px; border-radius: 24px; cursor: pointer; }
+.q-icon { position: absolute; right: 50px; bottom: 50px; background: black; border: 2px solid white; padding: 2px; border-radius: 24px; cursor: pointer; z-index: 100; }
 .q-icon-inner { background: white; width: 40px; height: 40px; border-radius: 20px; text-align: center; line-height: 42px; font-size: 40px; }
 
-.q-popup { position: absolute; height: 70%; width: 350px; right: 20px; bottom: 120px; border: 2px solid white; padding: 2px; border-radius: 10px; font-size: 20px; background: black; }
+.q-popup { position: absolute; height: 70%; width: 350px; right: 20px; bottom: 120px; border: 2px solid white; padding: 2px; border-radius: 10px; font-size: 16px; background: black; z-index: 100; }
 .q-popup-inner { background: white; width: 100%; height: 100%; position: relative; border-radius: 6px; }
 .q-ta { position: absolute; bottom: 0; width: 100%; height: 80px; background: white; resize: none; border: none; border-top: 1px solid black; font-size: inherit; padding: 10px 20px; outline: none; border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }
 .q-questions { position: absolute; top: 0; width: 100%; height: 100%; padding: 20px 20px 100px 20px; overflow: scroll; }
-.q { width: 100%; background: #1B72FD; color: white; padding: 10px; margin: 0 0 35px 0; position: relative; white-space: pre-wrap; }
-
+.q { width: 302px; background: #1B72FD; color: white; padding: 10px; margin: 0 0 35px 0; position: relative; white-space: pre-wrap; font-size: 1em; }
 .q-t { width: 0; height: 0; border-right: 15px solid transparent; border-top: 15px solid #1B72FD; position: absolute; bottom: -15px; right: 20px; }
-.q-likes { position: absolute; bottom: -22px; left: 10px; color: #999; cursor: pointer;  }
-.q-heart { width: 16px; height: 12px; background: url(/heart.png); background-size: 12px; background-repeat: no-repeat; background-position: 0 0; display: inline-block; }
+.q-likes { position: absolute; bottom: -1.2em; left: 0.5em; color: #999; cursor: pointer;  }
+.q-heart { width: 0.8em; height: 0.6em; background: url(/heart.png); background-size: 0.6em; background-repeat: no-repeat; background-position: 0 0; display: inline-block; }
 
 .q-likes:hover, .q-likes_voted { color: #dd2e44;  }
-.q-likes:hover > .q-heart, .q-likes_voted > .q-heart { background-position: 0 -12px; }
+.q-likes:hover > .q-heart, .q-likes_voted > .q-heart { background-position: 0 -0.6em; }
 
-
+.q-slide { padding: 0 20px; font-size: 20px; width: 100%; padding: 0 20px; text-align: center; color: white; }
+.q-slide .q { display: inline-block; margin: 50px 20px; vertical-align: top; text-align: left; }

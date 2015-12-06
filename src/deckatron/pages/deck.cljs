@@ -140,8 +140,8 @@
       (case mode
         "Edit"     (edit/edit-page *pending-deck)
         "Read"     (read/read-page *pending-deck)
-        "Present"  (present/present-page *pending-deck)
-        "Spectate" (present/spectate-page *pending-deck))]))
+        "Present"  (present/present-page *pending-deck false)
+        "Spectate" (present/present-page *pending-deck true))]))
 
 
 ;; When patch comes from server
