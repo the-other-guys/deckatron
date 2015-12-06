@@ -187,9 +187,6 @@
          (remove #(clojure.string/blank? (:s/text %)))
          vec)))
 
-(defn parse-slide [s]
-  (assoc s :s/paragraphs (parse (:s/text s))))
-
 ;; TESTS
 
 
@@ -337,14 +334,6 @@
          {:s/type :comment :s/text "comment2 line1\ncomment2 line2\n"}
          {:s/type :slide :s/text "slide2 line1\nslide2 line2\n"}
          {:s/type :slide :s/text "slide3 line1\nslide3 line2\n"}])))
-
-
-(deftest test-parse-slide
-  (is (= (parse-slide {:s/type :comment
-                       :s/text "# foo + *bar*!\n\n"})
-         {:s/type :comment
-          :s/text "# foo + *bar*!\n\n"
-          :s/paragraphs (parse "# foo + *bar*!\n\n")})))
 
 
 (run-tests)

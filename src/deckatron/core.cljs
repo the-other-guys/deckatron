@@ -67,8 +67,8 @@
   (str/split txt #"(?:---|===)")
   #_(let [pages (->> txt
                    p/split-text-into-slides
-                   (mapv p/parse-slide))]
-;;     (println (str "pages:" (prn-str pages)))
+                   (mapv p/parse))]
+    (println (str "pages:" (prn-str pages)))
     pages))
 
 
