@@ -118,8 +118,39 @@
            }]]])])
 
 
+(defn fade
+  ([] (fade true))
+  ([bool] (set! js/document.body.className (if bool "faded" ""))))
+
+
+(def fade-mixin
+  { :will-mount
+    (fn [s]
+      (let [*t (atom nil)
+            mm (fn [_]
+                 (fade false)
+                 (js/clearTimeout @*t)
+                 (reset! *t (js/setTimeout fade 2000)))]
+        (.addEventListener js/document "mousemove" mm false)
+        (mm nil)
+        (assoc s ::fade-timer *t
+                 ::fade-handler mm)))
+    
+    :transfer-state
+    (fn [o n]
+      (merge n (select-keys o [::fade-timer ::fade-handler])))
+    
+    :will-unmount
+    (fn [s]
+      (js/clearTimeout @(::fade-timer s))
+      (fade false)
+      (.removeEventListener js/document "mousemove" (::fade-handler s))
+      s)})
+  
+
 (rum/defc present-page < rum/reactive
                          set-starting-slide
+                         fade-mixin
   [*deck spectator?]
   (let [deck   (rum/react *deck)
         width  (rum/react core/*window-width)
