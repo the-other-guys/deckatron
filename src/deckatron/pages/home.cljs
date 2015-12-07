@@ -21,8 +21,8 @@
     [:.deck-slide
       { :class [ (str "deck-slide_" (:deck/id deck))
                  (:deck/theme deck "default") ] }
-      [:a (core/turbolink (str "/deck/" (:deck/id deck)))
-       (core/slide (-> deck :deck/content core/->first-slide-only))]
+      [:a (core/turbolink (str "/deck/" (:deck/id deck) (when (core/presenting? deck) "/Spectate")))
+        (core/slide (-> deck :deck/content core/->first-slide-only))]
       #_[:.deck-shine]]
     (let [spectators (count (:deck/spectators deck))]
       (if (core/presenting? deck)
