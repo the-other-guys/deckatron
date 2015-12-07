@@ -110,7 +110,7 @@ body.err { opacity: 0.5; }
 
 .page_deck-present { background: black; }
 
-.page_deck-present .slide { margin: 0; }
+.page_deck-present .slide { margin: 0; border-radius: 0; }
 
 
 .theme-popup { position: absolute; border: 3px solid #000; width: 760px; height: 580px; background: white; border-radius: 10px; padding: 20px 30px; right: 100px; top: 80px; box-shadow: 0 0 140px rgba(0,0,0,0.5); }
