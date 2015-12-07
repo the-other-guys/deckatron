@@ -85,7 +85,7 @@
         (aset "onmessage"
           (fn [payload]
             (let [data (u/transit->obj (.-data payload))]
-              (println "Received:" data)
+;;               (println "Received:" data)
               (swap! *decks update (:deck/id data) u/patch (:patch data))))))))
   
   (rum/mount (page) mount-el))

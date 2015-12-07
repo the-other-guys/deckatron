@@ -75,18 +75,18 @@
         _             (apply (partial swap! cache dissoc) keys-to-drop)
         keys-to-parse (clojure.set/difference (set vs) (keys @cache))
         parsed        (mapv #(vec [% (p/parse %)]) keys-to-parse)]
-    (print (str "dropped from cache: " (count keys-to-drop) "\n" keys-to-drop))
-    (print (str "added to cache: "(count keys-to-parse) "\n" keys-to-parse))
-    (print (str "total in cache: "(count (keys @cache))))
+;;     (print (str "dropped from cache: " (count keys-to-drop) "\n" keys-to-drop))
+;;     (print (str "added to cache: "(count keys-to-parse) "\n" keys-to-parse))
+;;     (print (str "total in cache: "(count (keys @cache))))
     (doseq [[k v] parsed]
       (swap! cache assoc k v))))
 
 (defn- ->slides [txt]
-  (print (str "cache before: " @parsed-deck-cache))
+;;   (print (str "cache before: " @parsed-deck-cache))
   (let [unparsed (->> txt p/split-text-into-slides)
         _        (parse-with-cache! parsed-deck-cache unparsed)
         slides   (mapv #(get @parsed-deck-cache %) unparsed)]
-    (print (str "cache after: " @parsed-deck-cache))
+;;     (print (str "cache after: " @parsed-deck-cache))
     slides))
 
 (defn ->slides-only [txt]

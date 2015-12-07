@@ -154,7 +154,7 @@
     (->> s parser vec reduce-blocks)))
 
 (defn parse [slide]
-   (println (str "parsing slide: " slide))
+;;    (println (str "parsing slide: " slide))
   (let [ast (-> slide :s/text parse-string vec)]
 ;;     (println (str "extracted ast: " ast))
     (assoc slide :s/paragraphs ast)))
@@ -316,4 +316,4 @@
          {:s/type :slide :s/text "slide3 line1\nslide3 line2\n\n\n"}])))
 
 
-(run-tests)
+;; (run-tests)
