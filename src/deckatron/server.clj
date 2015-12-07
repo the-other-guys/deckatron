@@ -195,6 +195,7 @@
 
 (def app (-> routes ensure-userid wrap-cookies))
 
-(defn -main [& args]
-  (println "Starting server at port 8080")
-  (httpkit/run-server #'app {:port 8080}))
+(defn -main [& {:as args}]
+  (let [port (or (get args "--port") "8080")]
+    (println "Starting server at port" port)
+    (httpkit/run-server #'app {:port (Long/parseLong port)})))
