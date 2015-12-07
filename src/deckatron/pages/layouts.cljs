@@ -10,19 +10,21 @@
     (cond
       (contains? types :link)   (if-let [youtube-id (second (re-find #"www.youtube.com/watch\?v=(.+)" (:e/href tg)))]
                                   ; TODO extract URL parts: host name and "v" argument
-                                  [:iframe{ :style {:width "40em"
-                                                    :height "22.5em"}
-                                            :src            (str "https://www.youtube.com/embed/" youtube-id)
-                                            :frameborder     0
-                                            :allowfullscreen true}]
-                                  [:a      {:href (:e/href tg)} text])
+                                  [:iframe.slide-fill
+                                    { :src            (str "https://www.youtube.com/embed/" youtube-id)
+                                      :frameborder     0
+                                      :allowfullscreen true }]
+                                  [:a {:href (:e/href tg) :target "_blank"} text])
 
       (contains? types :strong) [:strong {} text]
       (contains? types :em)     [:em {} text]
 
-      (contains? types :image)  [:img {:src   (:e/href tg)
-                                       :alt   text
-                                       :width "150em"}]
+      (contains? types :image)  [:div.slide-fill 
+                                  { :style { :background-size "contain"
+                                             :background-repeat "no-repeat"
+                                             :background-position "center center"
+                                             :background-image (str "url('" (:e/href tg) "')")
+                                             :title text } }]
 
       :else                     [:span {} text])))
 

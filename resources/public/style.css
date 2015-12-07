@@ -62,7 +62,7 @@ body.err { opacity: 0.5; }
 
 .slide-inner, .note-inner { width: 100%; height: 100%; font-size: 2.5em; }
 .slide_43 { height: 30em; }
-
+.slide-fill { width: 16em; height: 9em; margin: -0.8em; }
 
 .deck { display: inline-block; vertical-align: top; margin: 5px 10px; }
 .page_home .slide { border-width: 2px; margin: 0; }
