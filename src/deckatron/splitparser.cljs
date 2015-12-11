@@ -62,17 +62,17 @@
 ;                                         {:e/text " ", :e/types #{}}
 ;                                         {:e/text "qux", :e/types #{:em}}]}]}])))
 
-(defn- ->span [s & modifiers]
+(defn- ->span [s modifiers]
   {:e/text s :e/types (set modifiers)})
 
 (defn- ->paragraph [type lines]
   {:p/type type :p/lines lines})
 
 (defn- ->raw-line [s]
-  {:l/elements [(->span s)]})
+  {:l/elements [(->span s [])]})
 
 
-(defn- span-tag-info [s sep rsep tag]
+(defn- span-tag-info [sep rsep tag s]
   (let [chunks  (str/split s rsep)
         start   (-> chunks first count)
         endsw   (str/ends-with? s sep)
@@ -95,53 +95,47 @@
      :endswith endsw
      :idxs (set idxs)}))
 
-(defn- parse-not-bolds [s & tags]
+
+
+(def ^:private tag-fns-by-priority
+  {1 [(partial span-tag-info "**" #"\*\*" :strong)
+      (partial span-tag-info "__" #"__"   :strong)
+      (partial span-tag-info "`"  #"`"    :code)]
+   2 [(partial span-tag-info "*"  #"\*"   :em)
+      (partial span-tag-info "_"  #"_"    :em)
+      (partial span-tag-info "~"  #"~"    :strikethrough)]})
+
+(defn- parse-line
+  ([s]
+   (parse-line s 1 []))
+  ([s priority tags]
   (when-not (= s "")
-    (let [em1  (span-tag-info s "*" #"\*" :em)
-          em2  (span-tag-info s "_" #"_" :em)
-          stri (span-tag-info s "~" #"~" :strikethrough)
+    (let [candidate-fns (tag-fns-by-priority priority)
+          candidates    (if (nil? candidate-fns)
+                          nil
+                          (map #(% s) candidate-fns))
+          winner (->> candidates
+                   (filter :present)
+                   (sort-by :start)
+                   first)
           f (fn [i s ti]
-              (if (contains? (:idxs ti) i)
-                (apply (partial parse-not-bolds s) (cons (:tag ti) tags))
-                (apply (partial parse-not-bolds s) tags)))
-          ret (fn [w]
-                (->> w
-                  :chunks
-                  (map-indexed #(f %1 %2 w))
-                  vec))
-          candidates [em1 em2 stri]
-          winner (->> candidates (filter :present) (sort-by :start) first)]
-      (if (nil? winner)
-        [(apply (partial ->span s) tags)]
-        (ret winner)))))
-
-
-
-(defn- parse-line [s & tags]
-  (when-not (= s "")
-    (let [a (span-tag-info s "**" #"\*\*" :strong)
-          b (span-tag-info s "__" #"__" :strong)
-          code (span-tag-info s "`" #"`" :code)
-          f (fn [i s ti]
-              (if (contains? (:idxs ti) i)
-                (apply (partial parse-line s) (cons (:tag ti) tags))
-                (apply (partial parse-line s) tags)))
-          ret (fn [w]
-                (->> w
-                  :chunks
-                  (map-indexed #(f %1 %2 w))
-                  vec))
-          candidates [a b code]
-          winner (->> candidates (filter :present) (sort-by :start) first)]
-      (if (nil? winner)
-        (apply (partial parse-not-bolds s) tags)
-        (ret winner)))))
+              (let [tags (if (contains? (:idxs ti) i)
+                           (cons (:tag ti) tags)
+                           tags)]
+                (parse-line s priority tags)))
+          use (fn [ti] (->> (:chunks ti) (map-indexed #(f %1 %2 ti)) vec))]
+      (print priority)
+      (print candidates)
+      (print winner)
+      (cond
+        (nil? candidates)  [(->span s tags)]
+        (nil? winner)      (parse-line s (inc priority) tags)
+        :else              (use winner))))))
 
 
 (defn- ->line [s]
   (let [spans (->> s parse-line flatten (remove nil?) vec)]
     {:l/elements spans}))
-
 
 (defn- ->code-paragraph [s]
   (let [[lang-line & code-lines] (str/split s #"\n")
@@ -150,23 +144,32 @@
     (assoc p :p/language lang)))
 
 (defn- ->header [s type]
-  (let [s (-> s (str/split #" " 2) second)]
-    (->paragraph type (->line [(->span s)]))))
+  (let [txt (-> s (str/split #" " 2) second)
+        lines [(->raw-line txt)]]
+    (->paragraph type lines)))
 
-(defn- ->text-paragraph [s]
-  (let [lines (->> s str/split-lines (mapv ->line))]
-    (->paragraph :text lines)))
-
+(defn- ->text-paragraph [ss]
+  (->> ss (mapv ->line) (->paragraph :text)))
 
 (defn- ->unordered-list [ss]
-  (let [lines (mapv ->line ss)]
-    (->paragraph :unordered-list lines)))
+  (->> ss (mapv ->line) (->paragraph :unordered-list)))
 
 (defn- ->ordered-list [ss]
-  (let [lines (mapv ->line ss)]
-    (->paragraph :ordered-list lines)))
+  (->> ss (mapv ->line) (->paragraph :ordered-list)))
 
+(defn- unordered-list? [lines sep]
+  (->> lines
+    (map #(str/starts-with? % sep))
+    (every? true?)))
 
+(defn- digit-with-dot? [s]
+  (->> s (re-matches #"(\d+\.).*") empty? not))
+
+(defn- ordered-list? [lines]
+  (->> lines
+    (map #(-> % (str/split #" ") first))
+    (map digit-with-dot?)
+    (every? true?)))
 
 (defn- parse-paragraph [s]
   (when-not (str/blank? s)
@@ -178,28 +181,19 @@
         "####" (->header t :h4)
         "*"    (->unordered-list t)
         "-"    (->unordered-list t)
-        (let [lines (str/split-lines s)
-              UL? (fn [sep]
-                   (->> lines
-                     (map #(str/starts-with? % sep))
-                     (every? true?)))
-              digit-with-dot? #(->> % (re-matches #"(\d+\.).*") empty? not)
-              OL (->> lines
-                   (map #(-> % (str/split #" ") first))
-                   (map digit-with-dot?)
-                   (every? true?))]
-        (cond
-          (UL? "*") (->unordered-list lines)
-          (UL? "-") (->unordered-list lines)
-          OL        (->ordered-list lines)
-          :else     (->text-paragraph s)))))))
+        (let [lines (str/split-lines s)]
+          (cond
+            (unordered-list? lines "*") (->unordered-list lines)
+            (unordered-list? lines "-") (->unordered-list lines)
+            (ordered-list?   lines)     (->ordered-list   lines)
+            :else                       (->text-paragraph lines)))))))
 
 (defn- ->paragraphs [s]
   (let [ss (str/split s CODE-SEPARATOR-RE)
         f (fn [i segment]
             (if (odd? i)
               (->code-paragraph segment)
-              (map parse-paragraph (str/split segment #"\n\n"))))]
+              (map parse-paragraph (str/split segment PARAGRAPH-SEPARATOR-RE))))]
     (->> ss (map-indexed f) flatten (remove nil?) vec)))
 
 (defn ->page [p]
@@ -228,23 +222,43 @@
 
 (deftest test-split-text-into-slides
   (is (= (->raw-pages
-           (clojure.string/join "\n"
+           (str/join "\n"
              [note-p slide-p note-p slide-p slide-p]))
         [note slide note slide slide]))
 
   (is (= (->raw-pages
-           (clojure.string/join "\n"
+           (str/join "\n"
              [slide-p note-p note-p slide-p slide-p]))
         [slide note note slide slide]))
 
   (is (= (->raw-pages
-           (clojure.string/join "\n"
+           (str/join "\n"
              [slide-lines note-p note-p slide-p slide-p]))
         [slide note note slide slide])))
 
 
-(deftest test-parse
-  (is (= (parse "line```clojure\n(+ 1 1)```yoyoyo")
-        "yo")))
+; aaaa[key](https://w)bbb[note](https://w)ccc
+; => ["aaa" "key](https://w)bbb" "note](https://w)ccc"] ;; rest
+; => ["aaa" ["key" "https://w)bbb"] ["note" "https://w)ccc"]]
+; => ["aaa" ["key" ["https://w" "bbb"] ["note" ["https://w" "ccc"]]]
+; => ["aaa" ["key" "https://w"] "bbb" ["note" "https://w"] "ccc"]
 
-(run-tests)
+
+
+(deftest test-parse
+  (is (= (->paragraphs "line```clojure\n(+ 1 1)```yoyoyo")
+        [{:p/type :text, :p/lines [{:l/elements [{:e/text "line", :e/types #{}}]}]}
+         {:p/type :code, :p/lines [{:l/elements [{:e/text "(+ 1 1)", :e/types #{}}]}], :p/language "clojure"}
+         {:p/type :text, :p/lines [{:l/elements [{:e/text "yoyoyo", :e/types #{}}]}]}])))
+
+
+(deftest test-parse-inline-img
+  (is (= (->paragraphs "![kfc gif](http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif)")
+        [{:p/type :text, :p/lines [{:l/elements [{:e/text "kfc gif", :e/types #{:image}
+                                                  :e/href "http://media.giphy.com/media/3jps6E3j2VlsI/giphy.gif"}]}]}])))
+
+(deftest test-parse-url
+  (is (= (->paragraphs "[key note](https://www.youtube.com/watch?v=FihU5JxmnBg)")
+        [{:p/type :text, :p/lines [{:l/elements [{:e/text "key note", :e/types #{:link}
+                                                  :e/href "https://www.youtube.com/watch?v=FihU5JxmnBg"}]}]}])))
+;(run-tests)
