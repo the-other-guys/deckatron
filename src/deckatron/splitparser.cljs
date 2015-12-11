@@ -87,13 +87,13 @@
         present (or (> c 2) (and endsw (= c 2)))
         idxs    (filterv odd? (range c))
         idxs    (if (or (odd? c) endsw) idxs (pop idxs))]
-    {:present present
-     :chunks chunks
-     :start start
-     :sep sep
-     :tag tag
-     :endswith endsw
-     :idxs (set idxs)}))
+    {:t/present  present
+     :t/chunks   chunks
+     :t/start    start
+     :t/sep      sep
+     :t/tag      tag
+     :t/endswith endsw
+     :t/idxs     (set idxs)}))
 
 
 
@@ -115,15 +115,15 @@
                           nil
                           (map #(% s) candidate-fns))
           winner (->> candidates
-                   (filter :present)
-                   (sort-by :start)
+                   (filter :t/present)
+                   (sort-by :t/start)
                    first)
           f (fn [i s ti]
-              (let [tags (if (contains? (:idxs ti) i)
-                           (cons (:tag ti) tags)
+              (let [tags (if (contains? (:t/idxs ti) i)
+                           (cons (:t/tag ti) tags)
                            tags)]
                 (parse-line s priority tags)))
-          use (fn [ti] (->> (:chunks ti) (map-indexed #(f %1 %2 ti)) vec))]
+          use (fn [ti] (->> (:t/chunks ti) (map-indexed #(f %1 %2 ti)) vec))]
       (print priority)
       (print candidates)
       (print winner)
