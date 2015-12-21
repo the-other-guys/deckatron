@@ -18,15 +18,12 @@
 
   :aliases      { "package"   ["do"
                                "cljsbuild" "once" "advanced,"
-                               "uberjar"]
-                  ; don't touch, in use!
-                  "build-run" ["do"
-                               "cljsbuild" "once,"
-                               "run"] }
+                               "uberjar"] }
   :aot          [ deckatron.server ]
   :uberjar-name "deckatron.jar"
   :uberjar-exclusions [#"public/js/out"]
 
+  :clean-targets ^{:protect false} ["resources/public/js" "target"]
 
   :main         deckatron.server
   :figwheel     { :ring-handler  "deckatron.server/app"
