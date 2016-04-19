@@ -22,6 +22,7 @@
   :aot          [ deckatron.server ]
   :uberjar-name "deckatron.jar"
   :uberjar-exclusions [#"public/js/out"]
+  :auto-clean   false
 
   :clean-targets ^{:protect false} ["resources/public/js" "target"]
 
