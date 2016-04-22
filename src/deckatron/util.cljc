@@ -93,13 +93,7 @@
 
 
 (defn which? [test coll]
-  (loop [i 0]
-    (if (>= i (count coll))
-      nil
-      (if (test (nth coll i))
-        i
-        (recur (inc i))))))
-  
+  (first (keep-indexed #(if (test %2) %1 nil) coll)))
   
 (defn split [coll & preds]
   (let [preds (concat preds [(constantly true)])]
